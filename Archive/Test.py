@@ -1,5 +1,2 @@
-changed this done
-
-changing that
-
-changing again
+list = []
+print(1/len(list))

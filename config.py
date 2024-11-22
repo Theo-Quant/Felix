@@ -8,23 +8,53 @@ import requests
 from collections import deque
 import time
 
+def load_env(env_path='.env'):
+    """
+    Load environment variables from a .env file
+    """
+    try:
+        with open(env_path, 'r') as file:
+            for line in file:
+                # Skip empty lines and comments
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+
+                # Split on first occurrence of '='
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+
+                # Remove quotes if present
+                if value and value[0] == value[-1] and value[0] in ['"', "'"]:
+                    value = value[1:-1]
+
+                # Set environment variable
+                os.environ[key] = value
+
+    except FileNotFoundError:
+        print(f"Warning: {env_path} file not found!")
+        return False
+
+    return True
+
 
 # Exchange API Credentials
-BINANCE_API_KEY = 'j8bIz8U2qDoq6bAAf90uZbbs9iCpmBXwBTYIJRCkYCedaxIIH0denuiA4YPaulgB'
-BINANCE_SECRET_KEY = 'v0lRfns5Uzo9oWLBfkGHwQkLi86g3NwymzQA5SW8lja84kvIKpponESUZLUnISHV'
+BINANCE_API_KEY = os.environ.get('BINANCE_API_KEY', '')
+BINANCE_SECRET_KEY = os.environ.get('BINANCE_SECRET_KEY', '')
 
-OKX_API_KEY = 'a1751a12-b075-43b5-b184-6f15bea5326f'
-OKX_SECRET_KEY = '6C1778E85472D3EF27D51B271BF9C4B6'
-OKX_PASSPHRASE = 'Theo2daM$$n'
+OKX_API_KEY = os.environ.get('OKX_API_KEY', '')
+OKX_SECRET_KEY = os.environ.get('OKX_SECRET_KEY', '')
+OKX_PASSPHRASE = os.environ.get('OKX_PASSPHRASE', '')
 
-GATE_API_KEY = '24505b2c210fae9cc4dd9bae64d87347'
-GATE_SECRET_KEY = '8ccf75a3b8b4adfb48ecb6e7fc75a07146ba31e08b3e9975838f57d3b212c152'
+GATE_API_KEY = os.environ.get('GATE_API_KEY', '')
+GATE_SECRET_KEY = os.environ.get('GATE_SECRET_KEY', '')
 
 # Azure Credentials
-AZURE_SQL_SERVER = 'theosql.database.windows.net'
-AZURE_SQL_DATABASE = 'arbitrage_db_2024-03-22T23-30Z'
-AZURE_SQL_USERNAME = 'THEOsql'
-AZURE_SQL_PASSWORD = 'THEOBullRun2024!'
+AZURE_SQL_SERVER = os.environ.get('AZURE_SQL_SERVER', '')
+AZURE_SQL_DATABASE = os.environ.get('AZURE_SQL_DATABASE', '')
+AZURE_SQL_USERNAME = os.environ.get('AZURE_SQL_USERNAME', '')
+AZURE_SQL_PASSWORD = os.environ.get('AZURE_SQL_PASSWORD', '')
 AZURE_SQL_CONNECTION_STRING = f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{AZURE_SQL_SERVER},1433;Database={AZURE_SQL_DATABASE};Uid={AZURE_SQL_USERNAME};Pwd={AZURE_SQL_PASSWORD};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
 
 

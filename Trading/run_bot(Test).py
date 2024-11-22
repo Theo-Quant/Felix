@@ -1,4 +1,4 @@
-from HighFrequencyBotV2 import TradingBot, asyncio
+from Archive.HighFrequencyBotV2 import TradingBot, asyncio
 
 bot_configs = [
     {'symbol': 'TRX', 'notional_per_trade': 50, 'bot_id': 'TRX', 'max_notional': 5000},

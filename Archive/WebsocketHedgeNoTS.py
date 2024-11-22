@@ -19,7 +19,7 @@ from datetime import datetime
 from binance import AsyncClient
 import config
 import math
-from APIHedge import APIHedge
+from Hedging.APIHedge import APIHedge
 from redis import asyncio as aioredis
 import time
 import sys

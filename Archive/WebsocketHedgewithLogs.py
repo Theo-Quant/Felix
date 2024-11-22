@@ -8,7 +8,7 @@ from datetime import datetime
 from binance.client import Client as BinanceClient
 import config
 import math
-from APIHedge import APIHedge
+from Hedging.APIHedge import APIHedge
 from redis import asyncio as aioredis
 from TimeOffset import TimeSync
 import time

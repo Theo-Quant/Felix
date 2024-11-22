@@ -1,2 +1,5 @@
-list = []
-print(1/len(list))
+changed this done
+
+changing that
+
+changing again

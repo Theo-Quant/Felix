@@ -8,8 +8,6 @@ import time
 import pytz
 from datetime import timezone
 
-
-
 # Initialize exchange clients
 binance = ccxt.binance({
     'apiKey': config.BINANCE_API_KEY,

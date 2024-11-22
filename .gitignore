@@ -3,3 +3,5 @@
 *.temp
 *.tmp
 *.env
+.idea/*
+Plots/cache-directory/*

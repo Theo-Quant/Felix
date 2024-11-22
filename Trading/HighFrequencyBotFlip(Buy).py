@@ -53,8 +53,8 @@ class CSVLogger:
         if self.current_file:
             self.current_file.close()
         timestamp = datetime.now().strftime("%Y%m%d")
-        onedrive_path = r"C:\Users\ASUS\OneDrive\Documents\tradelogs"
-        filename = os.path.join(onedrive_path, f"bot_{self.bot_id}_{timestamp}_V3.5.csv")
+        linux_path = "/home/ec2-user/TradeLogs"  # Linux path
+        filename = os.path.join(linux_path, f"bot_{self.bot_id}_{timestamp}_V3.5.csv")
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         file_exists = os.path.isfile(filename)

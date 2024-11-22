@@ -7,54 +7,29 @@ from telegram import Bot
 import requests
 from collections import deque
 import time
+from dotenv import load_dotenv
+import os
 
-def load_env(env_path='.env'):
-    """
-    Load environment variables from a .env file
-    """
-    try:
-        with open(env_path, 'r') as file:
-            for line in file:
-                # Skip empty lines and comments
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-
-                # Split on first occurrence of '='
-                key, value = line.split('=', 1)
-                key = key.strip()
-                value = value.strip()
-
-                # Remove quotes if present
-                if value and value[0] == value[-1] and value[0] in ['"', "'"]:
-                    value = value[1:-1]
-
-                # Set environment variable
-                os.environ[key] = value
-
-    except FileNotFoundError:
-        print(f"Warning: {env_path} file not found!")
-        return False
-
-    return True
+# Load .env file
+load_dotenv()
 
 
 # Exchange API Credentials
-BINANCE_API_KEY = os.environ.get('BINANCE_API_KEY', '')
-BINANCE_SECRET_KEY = os.environ.get('BINANCE_SECRET_KEY', '')
+BINANCE_API_KEY = os.getenv('BINANCE_API_KEY', '')
+BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY', '')
 
-OKX_API_KEY = os.environ.get('OKX_API_KEY', '')
-OKX_SECRET_KEY = os.environ.get('OKX_SECRET_KEY', '')
-OKX_PASSPHRASE = os.environ.get('OKX_PASSPHRASE', '')
+OKX_API_KEY = os.getenv('OKX_API_KEY', '')
+OKX_SECRET_KEY = os.getenv('OKX_SECRET_KEY', '')
+OKX_PASSPHRASE = os.getenv('OKX_PASSPHRASE', '')
 
-GATE_API_KEY = os.environ.get('GATE_API_KEY', '')
-GATE_SECRET_KEY = os.environ.get('GATE_SECRET_KEY', '')
+GATE_API_KEY = os.getenv('GATE_API_KEY', '')
+GATE_SECRET_KEY = os.getenv('GATE_SECRET_KEY', '')
 
 # Azure Credentials
-AZURE_SQL_SERVER = os.environ.get('AZURE_SQL_SERVER', '')
-AZURE_SQL_DATABASE = os.environ.get('AZURE_SQL_DATABASE', '')
-AZURE_SQL_USERNAME = os.environ.get('AZURE_SQL_USERNAME', '')
-AZURE_SQL_PASSWORD = os.environ.get('AZURE_SQL_PASSWORD', '')
+AZURE_SQL_SERVER = os.getenv('AZURE_SQL_SERVER', '')
+AZURE_SQL_DATABASE = os.getenv('AZURE_SQL_DATABASE', '')
+AZURE_SQL_USERNAME = os.getenv('AZURE_SQL_USERNAME', '')
+AZURE_SQL_PASSWORD = os.getenv('AZURE_SQL_PASSWORD', '')
 AZURE_SQL_CONNECTION_STRING = f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{AZURE_SQL_SERVER},1433;Database={AZURE_SQL_DATABASE};Uid={AZURE_SQL_USERNAME};Pwd={AZURE_SQL_PASSWORD};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
 
 

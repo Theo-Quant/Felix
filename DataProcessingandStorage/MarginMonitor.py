@@ -159,11 +159,9 @@ class MarginMonitor:
                 # Process the account info
                 spot_assets = 0
                 for detail in account_info['info']['data'][0]['details']:
-                    print(detail)
                     if detail['accAvgPx']:
                         equsd = detail.get('eqUsd', '0')
                         spot_assets += float(equsd)
-                print(spot_assets)
 
                 positions = self.okx.fetch_positions()
 

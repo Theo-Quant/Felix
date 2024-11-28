@@ -75,10 +75,10 @@ def create_plot(df, filename):
 # Main execution
 if __name__ == "__main__":
     # Get the filename from the user
-    symbols = ['POPCAT', 'APE', 'MASK', 'NEIRO', 'HMSTR', 'BIGTIME', 'UXLINK', 'DOGS', 'TRX', 'TURBO', 'MEW', 'JTO', 'MKR', 'TIA', 'AAVE', 'OM', 'AR','TRB', 'ORBS', 'AUCTION', 'ZETA', 'SUI', 'STORJ', 'ENJ']
-    # symbols = ['NEIRO']
+    # symbols = ['POPCAT', 'APE', 'MASK', 'NEIRO', 'HMSTR', 'BIGTIME', 'UXLINK', 'DOGS', 'TRX', 'TURBO', 'MEW', 'JTO', 'MKR', 'TIA', 'AAVE', 'OM', 'AR','TRB', 'ORBS', 'AUCTION', 'ZETA', 'SUI', 'STORJ', 'ENJ']
+    symbols = ['MEW']
     for coin in symbols:
-        filename = f'bot_{coin}_20241121_V3.5.csv'
+        filename = f'bot_{coin}_20241126_V3.5.csv'
         linux_path = f"/home/ec2-user/TradeLogs/{filename}"
 
         # Read and process the data

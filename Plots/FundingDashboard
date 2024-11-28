@@ -1,0 +1,390 @@
+import dash
+from dash import dcc, html, Input, Output
+import plotly.graph_objs as go
+import pandas as pd
+from sqlalchemy import create_engine
+from db_config import connection_string_dash
+from datetime import datetime, timedelta
+
+
+# Create a SQLAlchemy engine
+def connect_to_db():
+    try:
+        engine = create_engine(connection_string_dash)
+        return engine
+    except Exception as e:
+        print(f"Error connecting to the database: {e}")
+        return None
+
+
+# Fetch symbols for Binance
+def fetch_symbols_Binance():
+    engine = connect_to_db()
+    dict_funding = {}
+    if engine:
+        query = """
+        SELECT symbol, funding_interval
+        FROM funding_intervals_Binance
+        """
+        df = pd.read_sql(query, engine)
+        for _, row in df.iterrows():
+            symbol = row['symbol']
+            interval = row['funding_interval']
+            if symbol.endswith('USDT'):
+                dict_funding[symbol] = interval
+        engine.dispose()
+    return dict_funding
+
+
+# Fetch symbols for OKX
+def fetch_symbols_OKX():
+    engine = connect_to_db()
+    dict_funding = {}
+    if engine:
+        query = """
+        SELECT symbol, funding_interval
+        FROM funding_intervals_OKX
+        """
+        df = pd.read_sql(query, engine)
+        for _, row in df.iterrows():
+            symbol = row['symbol']
+            interval = row['funding_interval']
+            if symbol.endswith('-USDT'):
+                dict_funding[symbol] = interval
+        engine.dispose()
+    return dict_funding
+
+
+# Fetch funding rate and average PI data for Binance (1m)
+def fetch_funding_rate_binance_1m(symbol):
+    engine = connect_to_db()
+    df = pd.DataFrame()
+    two_days_ago = datetime.now() - timedelta(days=2)
+    if engine:
+        query = f"""
+        SELECT timestamp, accrued_funding_rate, average_PI
+        FROM accrued_FR_Binance
+        WHERE symbol = '{symbol}'
+        AND timestamp >= '{two_days_ago.strftime('%Y-%m-%d %H:%M:%S')}'
+        ORDER BY timestamp ASC
+        """
+        df = pd.read_sql(query, engine)
+        engine.dispose()
+    return df
+
+
+# Fetch funding rate data and average PI for Binance (5s)
+def fetch_funding_rate_binance_5s(symbol):
+    engine = connect_to_db()
+    df = pd.DataFrame()
+    two_days_ago = datetime.now() - timedelta(days=2)
+    if engine:
+        query = f"""
+        SELECT timestamp, accrued_funding_rate, average_PI, missing_data
+        FROM accrued_FR_Binance_5s
+        WHERE symbol = '{symbol}'
+        AND timestamp >= '{two_days_ago.strftime('%Y-%m-%d %H:%M:%S')}'
+        ORDER BY timestamp ASC
+        """
+        df = pd.read_sql(query, engine)
+        engine.dispose()
+    return df
+
+
+# Fetch funding rate data for OKX
+def fetch_funding_rate_okx(symbol):
+    engine = connect_to_db()
+    df = pd.DataFrame()
+    two_days_ago = datetime.now() - timedelta(days=2)
+    if engine:
+        query = f"""
+        SELECT timestamp, accrued_funding_rate, average_PI
+        FROM accrued_FR_OKX
+        WHERE symbol = '{symbol}'
+        AND timestamp >= '{two_days_ago.strftime('%Y-%m-%d %H:%M:%S')}'
+        ORDER BY timestamp ASC
+        """
+        df = pd.read_sql(query, engine)
+        engine.dispose()
+    return df
+
+
+# Fetch premium index data for Binance
+def fetch_premium_index_binance(symbol):
+    engine = connect_to_db()
+    df = pd.DataFrame()
+    two_days_ago = datetime.now() - timedelta(days=2)
+    if engine:
+        query = f"""
+        SELECT timestamp, premium_index_open
+        FROM premium_index_Binance
+        WHERE symbol = '{symbol}'
+        AND timestamp >= '{two_days_ago.strftime('%Y-%m-%d %H:%M:%S')}'
+        ORDER BY timestamp ASC
+        """
+        df = pd.read_sql(query, engine)
+        df = df.drop_duplicates(subset=['timestamp'], keep='first')
+        engine.dispose()
+    return df
+
+
+# Fetch premium index data for OKX
+def fetch_premium_index_okx(symbol):
+    engine = connect_to_db()
+    df = pd.DataFrame()
+    two_days_ago = datetime.now() - timedelta(days=2)
+    if engine:
+        query = f"""
+        SELECT timestamp, premium_index
+        FROM premium_index_OKX
+        WHERE symbol = '{symbol}'
+        AND timestamp >= '{two_days_ago.strftime('%Y-%m-%d %H:%M:%S')}'
+        ORDER BY timestamp ASC
+        """
+        df = pd.read_sql(query, engine)
+        df = df.drop_duplicates(subset=['timestamp'], keep='first')
+        engine.dispose()
+    return df
+
+
+# Dash app layout
+app = dash.Dash(__name__)
+
+app.layout = html.Div([
+    html.H4('Funding Rate, Average PI, and Premium Index Visualization for Binance and OKX'),
+
+    html.Label('Select Exchange:'),
+    dcc.Dropdown(
+        id='exchange-selector',
+        options=[
+            {'label': 'Binance(1m)', 'value': 'Binance(1m)'},
+            {'label': 'Binance(5s)', 'value': 'Binance(5s)'},
+            {'label': 'OKX', 'value': 'OKX'}
+        ],
+        value='Binance(1m)',
+        clearable=False
+    ),
+
+    html.Label('Select Symbol:'),
+    dcc.Dropdown(
+        id='symbol-selector',
+        clearable=False
+    ),
+
+    dcc.Graph(id='funding-rate-graph'),
+    dcc.Graph(id='average-pi-graph'),
+    dcc.Graph(id='premium-index-graph'),
+    dcc.Interval(
+        id='interval-component',
+        interval=1 * 60 * 1000,  # Update every 1 minute
+        n_intervals=0
+    )
+])
+
+
+# Callback to update the symbol dropdown based on the selected exchange
+@app.callback(
+    Output('symbol-selector', 'options'),
+    [Input('exchange-selector', 'value')]
+)
+def update_symbol_dropdown(selected_exchange):
+    if selected_exchange in ['Binance(1m)', 'Binance(5s)']:
+        symbols = [{'label': symbol, 'value': symbol} for symbol in fetch_symbols_Binance().keys()]
+    else:
+        symbols = [{'label': symbol, 'value': symbol} for symbol in fetch_symbols_OKX().keys()]
+    return symbols
+
+
+# Callback to update the graphs based on the selected exchange and symbol
+@app.callback(
+    [Output('funding-rate-graph', 'figure'),
+     Output('average-pi-graph', 'figure'),
+     Output('premium-index-graph', 'figure')],
+    [Input('exchange-selector', 'value'),
+     Input('symbol-selector', 'value'),
+     Input('interval-component', 'n_intervals')]
+)
+def update_graphs(selected_exchange, selected_symbol, n_intervals):
+    if selected_exchange == 'Binance(1m)':
+        df = fetch_funding_rate_binance_1m(selected_symbol)
+        df_premium = fetch_premium_index_binance(selected_symbol)
+
+        # Create the graph for the accrued funding rate for Binance(1m)
+        fig_funding_rate = go.Figure()
+        fig_funding_rate.add_trace(go.Scatter(
+            x=df['timestamp'],
+            y=df['accrued_funding_rate'],
+            mode='lines+markers',
+            name=f'Accrued Funding Rate for {selected_symbol} (Binance(1m))',
+            line=dict(color='green', width=2)
+        ))
+
+        # Customize layout
+        fig_funding_rate.update_layout(
+            title=f'Accrued Funding Rate for {selected_symbol} (Binance(1m))',
+            xaxis_title='Time',
+            yaxis_title='Accrued Funding Rate (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+        # Create the graph for the average PI for Binance(1m)
+        fig_average_pi = go.Figure()
+        fig_average_pi.add_trace(go.Scatter(
+            x=df['timestamp'],
+            y=df['average_PI'],
+            mode='lines+markers',
+            name=f'Average PI for {selected_symbol} (Binance(1m))',
+            line=dict(color='blue', width=2)
+        ))
+        fig_average_pi.update_layout(
+            title=f'Average PI for {selected_symbol} (Binance(1m))',
+            xaxis_title='Time',
+            yaxis_title='Average PI (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+
+        # Create the graph for the premium index for Binance(1m)
+        fig_premium_index = go.Figure()
+        fig_premium_index.add_trace(go.Scatter(
+            x=df_premium['timestamp'],
+            y=df_premium['premium_index_open'],
+            mode='lines+markers',
+            name=f'Premium Index for {selected_symbol} (Binance(1m))',
+            line=dict(color='red', width=2)
+        ))
+        fig_premium_index.update_layout(
+            title=f'Premium Index for {selected_symbol} (Binance(1m))',
+            xaxis_title='Time',
+            yaxis_title='Premium Index (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+    elif selected_exchange == 'Binance(5s)':
+        df = fetch_funding_rate_binance_5s(selected_symbol)
+        df_premium = fetch_premium_index_binance(selected_symbol)
+
+        last_missing_data = df['missing_data'].iloc[-1] if not df['missing_data'].empty else "N/A"
+
+        # Create the graph for the accrued funding rate for Binance(5s)
+        fig_funding_rate = go.Figure()
+        fig_funding_rate.add_trace(go.Scatter(
+            x=df['timestamp'],
+            y=df['accrued_funding_rate'],
+            mode='lines+markers',
+            name=f'Accrued Funding Rate for {selected_symbol} (Binance(5s))[Missing Data: {last_missing_data}]',
+            line=dict(color='green', width=2)
+        ))
+
+        # Customize layout
+        fig_funding_rate.update_layout(
+            title=f'Accrued Funding Rate for {selected_symbol} (Binance(5s)) [Missing Data: {last_missing_data}]',
+            xaxis_title='Time',
+            yaxis_title='Accrued Funding Rate (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+        # Create the graph for the average PI for Binance(5s)
+        fig_average_pi = go.Figure()
+        fig_average_pi.add_trace(go.Scatter(
+            x=df['timestamp'],
+            y=df['average_PI'],
+            mode='lines+markers',
+            name=f'Average PI for {selected_symbol} (Binance(5s))',
+            line=dict(color='blue', width=2)
+        ))
+        fig_average_pi.update_layout(
+            title=f'Average PI for {selected_symbol} (Binance(5s))',
+            xaxis_title='Time',
+            yaxis_title='Average PI (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+
+        # Create the graph for the premium index for Binance(5s)
+        fig_premium_index = go.Figure()
+        fig_premium_index.add_trace(go.Scatter(
+            x=df_premium['timestamp'],
+            y=df_premium['premium_index_open'],
+            mode='lines+markers',
+            name=f'Premium Index for {selected_symbol} (Binance(5s))',
+            line=dict(color='red', width=2)
+        ))
+        fig_premium_index.update_layout(
+            title=f'Premium Index for {selected_symbol} (Binance(5s))',
+            xaxis_title='Time',
+            yaxis_title='Premium Index (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+
+    elif selected_exchange == 'OKX':
+        df = fetch_funding_rate_okx(selected_symbol)
+        df_premium = fetch_premium_index_okx(selected_symbol)
+
+        # Create the graph for the accrued funding rate for OKX
+        fig_funding_rate = go.Figure()
+        fig_funding_rate.add_trace(go.Scatter(
+            x=df['timestamp'],
+            y=df['accrued_funding_rate'],
+            mode='lines+markers',
+            name=f'Accrued Funding Rate for {selected_symbol} (OKX)',
+            line=dict(color='green', width=2)
+        ))
+        fig_funding_rate.update_layout(
+            title=f'Accrued Funding Rate for {selected_symbol} (OKX)',
+            xaxis_title='Time',
+            yaxis_title='Accrued Funding Rate (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+
+        # Create the graph for the average PI for OKX
+        fig_average_pi = go.Figure()
+        fig_average_pi.add_trace(go.Scatter(
+            x=df['timestamp'],
+            y=df['average_PI'],
+            mode='lines+markers',
+            name=f'Average PI for {selected_symbol} (OKX)',
+            line=dict(color='blue', width=2)
+        ))
+        fig_average_pi.update_layout(
+            title=f'Average PI for {selected_symbol} (OKX)',
+            xaxis_title='Time',
+            yaxis_title='Average PI (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+
+        # Create the graph for the premium index for OKX
+        fig_premium_index = go.Figure()
+        fig_premium_index.add_trace(go.Scatter(
+            x=df_premium['timestamp'],
+            y=df_premium['premium_index'],
+            mode='lines+markers',
+            name=f'Premium Index for {selected_symbol} (OKX)',
+            line=dict(color='red', width=2)
+        ))
+        fig_premium_index.update_layout(
+            title=f'Premium Index for {selected_symbol} (OKX)',
+            xaxis_title='Time',
+            yaxis_title='Premium Index (%)',
+            yaxis=dict(tickformat='%'),
+            height=400,
+            width=1200
+        )
+
+    return fig_funding_rate, fig_average_pi, fig_premium_index
+
+
+# Run the Dash app
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8052)

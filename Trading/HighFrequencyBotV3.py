@@ -57,14 +57,15 @@ class CSVLogger:
         self.current_writer = None
         self.row_count = 0
         self.log_attempt_count = 0
+        self.current_date = datetime.now().strftime("%Y%m%d")  # Store current date for comparison
         self.create_new_file()
 
     def create_new_file(self):
         if self.current_file:
             self.current_file.close()
         timestamp = datetime.now().strftime("%Y%m%d")
-        linux_path = "/home/ec2-user/TradeLogs"  # Linux path
-        filename = os.path.join(linux_path, f"bot_{self.bot_id}_{timestamp}_V3.5.csv")
+        linux_path = f"/home/ec2-user/TradeLogs/{timestamp}"  # Linux path
+        filename = os.path.join(linux_path, f"{self.bot_id}_{timestamp}.csv")
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         file_exists = os.path.isfile(filename)
         self.current_file = open(filename, 'a', newline='')  # 'a' for append mode
@@ -72,6 +73,12 @@ class CSVLogger:
         # Get the current row count
         self.current_file.seek(0, os.SEEK_END)
         self.row_count = self.current_file.tell() // 100
+        self.current_date = timestamp  # Update stored date
+
+    def check_date_rollover(self):
+        current_date = datetime.now().strftime("%Y%m%d")
+        if current_date != self.current_date:
+            self.create_new_file()
 
     def log(self, side, ma_entry_spread, entry_spread, ma_exit_spread, exit_spread, limit_order, fr_factor, entry_bound, exit_bound, impact_bid_price_okx, impact_ask_price_binance, buy_spread_ma, sell_spread_ma, buy_spread_sd, sell_spead_sd, timeoftrade, okx_orderbook, binance_orderbook, impact_price_flag):
         self.log_attempt_count += 1  # Increment the counter

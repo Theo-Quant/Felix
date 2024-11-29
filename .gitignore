@@ -4,4 +4,5 @@
 *.tmp
 *.env
 .idea/*
+.venv
 Plots/cache-directory/*

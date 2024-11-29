@@ -39,7 +39,6 @@ okx = ccxt_async.okx({
 })
 
 #endregion
-
 class CSVLogger:
     def __init__(self, bot_id, max_rows=1000000):
         self.bot_id = bot_id
@@ -47,6 +46,7 @@ class CSVLogger:
         self.current_file = None
         self.current_writer = None
         self.row_count = 0
+        self.log_attempt_count = 0
         self.create_new_file()
 
     def create_new_file(self):
@@ -63,32 +63,39 @@ class CSVLogger:
         self.current_file.seek(0, os.SEEK_END)
         self.row_count = self.current_file.tell() // 100
 
-    def log(self, side, ma_entry_spread, entry_spread, ma_exit_spread, exit_spread, limit_order, fr_factor, entry_bound, exit_bound, impact_bid_price_okx, impact_ask_price_binance, buy_spread_ma, sell_spread_ma, buy_spread_sd, sell_spead_sd):
-        if self.row_count >= self.max_rows:
-            self.create_new_file()
+    def log(self, side, ma_entry_spread, entry_spread, ma_exit_spread, exit_spread, limit_order, fr_factor, entry_bound, exit_bound, impact_bid_price_okx, impact_ask_price_binance, buy_spread_ma, sell_spread_ma, buy_spread_sd, sell_spead_sd, timeoftrade, okx_orderbook, binance_orderbook, impact_price_flag):
+        self.log_attempt_count += 1  # Increment the counter
 
-        row = [
-            datetime.now(),
-            self.bot_id,
-            side,
-            round(ma_entry_spread, 3),
-            round(entry_spread, 3),
-            round(ma_exit_spread, 3),
-            round(exit_spread, 3),
-            round(limit_order, 6),
-            fr_factor,
-            round(entry_bound, 5),
-            round(exit_bound, 5),
-            impact_bid_price_okx,
-            impact_ask_price_binance,
-            buy_spread_ma,
-            sell_spread_ma,
-            buy_spread_sd,
-            sell_spead_sd
-        ]
-        self.current_writer.writerow(row)
-        self.row_count += 1
-        self.current_file.flush()  # Ensure data is written immediately
+        # Only log if it's the 3rd attempt (or a multiple of 3)
+        if self.log_attempt_count % 3 == 0:
+            if self.row_count >= self.max_rows:
+                self.create_new_file()
+
+            row = [
+                timeoftrade,
+                self.bot_id,
+                side,
+                round(ma_entry_spread, 3),
+                round(entry_spread, 3),
+                round(ma_exit_spread, 3),
+                round(exit_spread, 3),
+                round(limit_order, 6),
+                fr_factor,
+                round(entry_bound, 5),
+                round(exit_bound, 5),
+                impact_bid_price_okx,
+                impact_ask_price_binance,
+                buy_spread_ma,
+                sell_spread_ma,
+                buy_spread_sd,
+                sell_spead_sd,
+                okx_orderbook,
+                binance_orderbook,
+                impact_price_flag
+            ]
+            self.current_writer.writerow(row)
+            self.row_count += 1
+            self.current_file.flush()  # Ensure data is written immediately
 
     def close(self):
         if self.current_file:

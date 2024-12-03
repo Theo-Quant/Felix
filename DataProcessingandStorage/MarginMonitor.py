@@ -371,8 +371,8 @@ class MarginMonitor:
 
 
             message += f"Total Unrealized PnL: $ {round(binance_margin['unrealizedPnL'] + okx_margin['unrealizedPnL'] + gate_margin['unrealizedPnL'], 2)}\n"
-            message += f"Total Balance : $ {round(binance_margin['totalAccountValue'] + okx_margin['totalEquity'] + gate_margin['totalAccountValue'] + binance_margin['bnb_notional'], 2)}\n"
-            message += f"Realized Balance : $ {round(binance_margin['totalAccountValue'] + okx_margin['totalEquity'] + gate_margin['totalAccountValue'] + binance_margin['bnb_notional'] - (binance_margin['unrealizedPnL'] + okx_margin['unrealizedPnL'] + gate_margin['unrealizedPnL']), 2)}\n"
+            message += f"Total Balance : $ {round(binance_margin['totalAccountValue'] + okx_margin['totalEquity'] + gate_margin['totalAccountValue'], 2)}\n"
+            message += f"Realized Balance : $ {round(binance_margin['totalAccountValue'] + okx_margin['totalEquity'] + gate_margin['totalAccountValue'] - (binance_margin['unrealizedPnL'] + okx_margin['unrealizedPnL'] + gate_margin['unrealizedPnL']), 2)}\n"
             message += f"BNB Notional : $ {round(binance_margin['bnb_notional'], 2)}\n\n"
 
 

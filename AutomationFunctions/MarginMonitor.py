@@ -354,20 +354,10 @@ class MarginMonitor:
             try:
                 # Fetch account info
                 account_info = self.bybit.fetch_balance()
-                account_info = account_info['info']['result']['list'][0]['coin']
-                account_info = next(
-                    (item for item in account_info if item['coin'] == 'USDT'), None
-                )
-                # Fetch position info
-                position_info = self.bybit.fetch_positions()
-
-                # Extract relevant information from account info
-                usdt_details = next(
-                    (item for item in account_info['coin'] if item['coin'] == 'USDT'), None)
-                
-                if not usdt_details:
-                    print("USDT details not found in Bybit account info")
-                    return None
+                # total equity = totalEquity
+                # marginBalance = totalMarginBalance
+                # maintenance margin = totalMaintenanceMargin
+                # marginRatio = accountMMRate
 
                 total_equity = float(usdt_details['walletBalance']) + float(usdt_details['unrealisedPnl'])
                 maintenance_margin = float(account_info['totalPositionMM'])

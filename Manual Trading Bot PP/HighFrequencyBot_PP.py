@@ -12,12 +12,21 @@ import csv
 import os
 from datetime import datetime, timedelta
 import pytz
-
+from dotenv import load_dotenv
 
 #region Initialization
 logger = config.setup_logger('PerpPerpManualBot')
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
+load_dotenv()
+OKX_API_KEY = os.getenv('OKX_API_KEY')
+OKX_SECRET_KEY = os.getenv('OKX_SECRET_KEY')
+OKX_PASSPHRASE = os.getenv('OKX_PASSPHRASE')
+
+BYBIT_API_KEY = os.getenv('BYBIT_API_KEY')
+BYBIT_SECRET_KEY = os.getenv('BYBIT_SECRET_KEY')
+
+onedrive_path = os.getenv('onedrive_path')
 
 # Initialize Binance and OKX clients
 binance = ccxt_async.binance({
@@ -30,9 +39,9 @@ binance = ccxt_async.binance({
 })
 
 okx = ccxt_async.okx({
-    'apiKey': config.OKX_API_KEY,
-    'secret': config.OKX_SECRET_KEY,
-    'password': config.OKX_PASSPHRASE,
+    'apiKey': OKX_API_KEY,
+    'secret': OKX_SECRET_KEY,
+    'password': OKX_PASSPHRASE,
     'enableRateLimit': True,
     'options': {
         'defaultType': 'swap'
@@ -40,8 +49,8 @@ okx = ccxt_async.okx({
 })
 
 bybit = ccxt_async.bybit({
-    'apiKey': config.BYBIT_API_KEY,
-    'secret': config.BYBIT_SECRET_KEY,
+    'apiKey': BYBIT_API_KEY,
+    'secret': BYBIT_SECRET_KEY,
     'enableRateLimit': True,
     'options': {'defaultType': 'swap'}
 })
@@ -60,7 +69,6 @@ class CSVLogger:
         if self.current_file:
             self.current_file.close()
         timestamp = datetime.now().strftime("%Y%m%d")
-        onedrive_path = r"C:\Users\nghon\Documents\tradelogs"
         filename = os.path.join(onedrive_path, f"bot_{self.bot_id}_PP_{timestamp}_V3.5.csv")
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 

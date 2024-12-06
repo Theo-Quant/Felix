@@ -78,8 +78,8 @@ if __name__ == "__main__":
     # symbols = ['POPCAT', 'APE', 'MASK', 'NEIRO', 'HMSTR', 'BIGTIME', 'UXLINK', 'DOGS', 'TRX', 'TURBO', 'MEW', 'JTO', 'MKR', 'TIA', 'AAVE', 'OM', 'AR','TRB', 'ORBS', 'AUCTION', 'ZETA', 'SUI', 'STORJ', 'ENJ']
     symbols = ['MEW']
     for coin in symbols:
-        filename = f'bot_{coin}_20241126_V3.5.csv'
-        linux_path = f"/home/ec2-user/TradeLogs/{filename}"
+        filename = f'{coin}_20241205.csv'
+        linux_path = f"/home/ec2-user/TradeLogs/20241205/{filename}"
 
         # Read and process the data
         df = read_csv_file(linux_path)

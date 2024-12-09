@@ -54,7 +54,7 @@ class TrendsRedisUpload:
                     okx_bid1,
                     okx_ask1
                 FROM [dbo].[exchange_dataV2]
-                WHERE id > {max_id - 200000}
+                WHERE id > {max_id - 300000}
                 ORDER BY id DESC
             '''
 

@@ -84,12 +84,12 @@ if __name__ == "__main__":
     manager.update_bot_params("APE", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("POPCAT", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("CAT", notional_per_trade=300, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
-    manager.update_bot_params("HMSTR", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=0, std_coeff=1.2, min_width=0.06, max_skew=0.04)
+    manager.update_bot_params("HMSTR", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=100, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("BIGTIME", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("AGLD", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=175000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("UXLINK", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("TNSR", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.4, min_width=0.06, max_skew=0.04)
-    manager.update_bot_params("RDNT", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=0, std_coeff=1.2, min_width=0.06, max_skew=0.04) # OKX has to be 5X
+    manager.update_bot_params("RDNT", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=100, std_coeff=1.2, min_width=0.06, max_skew=0.04) # OKX has to be 5X
     manager.update_bot_params("LQTY", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=200000, std_coeff=1.4, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("DOGS", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("ENJ", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=125000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     manager.update_bot_params("AAVE", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.4, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("JTO", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("MEW", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.3, min_width=0.06, max_skew=0.04)
-    manager.update_bot_params("STORJ", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=0, std_coeff=1.2, min_width=0.06, max_skew=0.04)
+    manager.update_bot_params("STORJ", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=100, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("TURBO", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.4, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("AR", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.2, min_width=0.06, max_skew=0.04)
     manager.update_bot_params("TRB", notional_per_trade=250, ma=10, max_notional=20000, default_max_notional=250000, std_coeff=1.3, min_width=0.06, max_skew=0.04)

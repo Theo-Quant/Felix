@@ -197,7 +197,7 @@ def run_funding_update():
 
 
 def main():
-    run_funding_update()
+    # run_funding_update()
     schedule.every().day.at("08:01").do(run_funding_update)
     schedule.every().day.at("12:01").do(run_funding_update)
     schedule.every().day.at("16:01").do(run_funding_update)

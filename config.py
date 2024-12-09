@@ -551,10 +551,12 @@ HEDGE3 = ['TNSR', 'AGLD', 'RDNT', 'BNT', 'TON', 'UXLINK', 'BIGTIME', 'HMSTR', 'A
 IN_TRADE = HEDGE1 + HEDGE2 + HEDGE3 + ['REEF', 'BANANA']
 
 
-# Logging configuration
-LOG_DIRECTORY = "logs"
+# Define the base log directory path
+LOG_DIRECTORY = "/home/ec2-user/PycharmProjects/trading-bots/Trading/logs"
+# Create the directory if it doesn't exist
 os.makedirs(LOG_DIRECTORY, exist_ok=True)
-LOG_FILENAME = os.path.join(LOG_DIRECTORY, f"trading_bot2.5_{datetime.now().strftime('%Y%m%d')}.log")
+# Define the log filename with timestamp
+LOG_FILENAME = os.path.join(LOG_DIRECTORY, f"trading_log_{datetime.now().strftime('%Y%m%d')}.log")
 
 # Initialize Telegram Bot for Errors
 bot_token2 = '6745253394:AAGRXVRqImFEfVNJVu6lgdHc-a0nZ1PlP1o'

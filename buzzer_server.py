@@ -3,7 +3,7 @@ import websockets
 
 clients = []
 
-async def handle_message(websocket, path):
+async def handle_message(websocket):
     global clients
     global fastest_time
     message = await websocket.recv()
@@ -19,5 +19,6 @@ async def handle_message(websocket, path):
 async def start_server():
     async with websockets.serve(handle_message, "localhost", 8765):
         print("Webosckets Server Started")
+        await asyncio.Future()
 asyncio.run(start_server())
 

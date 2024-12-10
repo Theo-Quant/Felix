@@ -12,4 +12,5 @@ async def start_client():
                 message = await websocket.recv()
                 print(message)
                 done = True
+# run the client
 asyncio.run(start_client())

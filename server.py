@@ -4,7 +4,6 @@ async def hello(websocket):
     name = await websocket.recv() # receive a data from clients
     print(f'Server Received: {name}')
     greeting = f'Hello, {name}'
-
     await websocket.send(greeting)# sending a data to a client
     print(f'Server sent: {greeting}')
     await websocket.close()

@@ -27,7 +27,7 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)
 hyperliquid_ws_url = "wss://api.hyperliquid.xyz/ws"
 hyperliquid_stream_types = ['l2Book']
 bybit_stream_types = [1, 50, 200, 500] # need to find the stream for this one the depth, use the websocket for this
-symbol = ['BTC', 'SOL', 'ETH']
+symbol = ['BTC', 'SOL', 'ETH'] # for hyperliquid
 hyper_message = {
     "method": "subscribe",
     "subscription":{ "type": "l2Book", "coin": "BTC" }
@@ -36,7 +36,7 @@ orderbook_data = list()
 def handle_message(message):
     logging.info(f"Received message: {message}")
     # orderbook_data.append(message["data"])
-async def hyperliquid_stream(): # return  px(price), sz(size), n(number of trades)
+async def hyperliquid_stream(): # return  [level1, level2] such that levels = [px(price), sz(size), n(number of trades)] , levels1 = bid, levels2 = ask
     try:
         # Connect to the WebSocket server
         async with websockets.connect(hyperliquid_ws_url) as websocket:
@@ -55,7 +55,7 @@ async def hyperliquid_stream(): # return  px(price), sz(size), n(number of trade
 
     except Exception as e:
         logging.error("Error: %s", str(e))
-async def bybit_stream(): #returns bid price, bid size
+async def bybit_stream(): #returns dict('b':[bid price, bid size], 'a':[ask_price, ask_size])
     ws = WebSocket(
         testnet=False,
         channel_type="linear",
@@ -65,5 +65,5 @@ async def bybit_stream(): #returns bid price, bid size
         symbol="SOLUSDT",
         callback=handle_message)
 # Run the asyncio event loop
-# asyncio.run(hyperliquid_stream())
-asyncio.run(bybit_stream())
+asyncio.run(hyperliquid_stream())
+# asyncio.run(bybit_stream())

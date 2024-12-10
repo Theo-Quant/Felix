@@ -10,4 +10,4 @@ This project, `byBitHyperLiquid.py`, establishes WebSocket connections to both t
 
 ## Variables
 The symbols in Hyperliquid is showing the pattern such as ETH, BTC, DOGE and etc whilst the symbols in Bybit shows the pattern of 
-BTCUSDT, ETHUSDT, DOGEUSDT which is given in Hyperliquid`symbols = ['ETH', 'BTC', 'DOGE', 'SOL']` and  for `[f'{symbol}USDT' for symbol in sybmols]` 
+BTCUSDT, ETHUSDT, DOGEUSDT which is given in Hyperliquid`symbols = ['ETH', 'BTC', 'DOGE', 'SOL']` and  for `[f'{symbol}USDT' for symbol in sybmols]`.

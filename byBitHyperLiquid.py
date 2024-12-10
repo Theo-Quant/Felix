@@ -27,7 +27,7 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)
 hyperliquid_ws_url = "wss://api.hyperliquid.xyz/ws"
 hyperliquid_stream_types = ['l2Book']
 bybit_stream_types = [1, 50, 200, 500] # need to find the stream for this one the depth, use the websocket for this
-symbol = ['BTC', 'SOL']
+symbol = ['BTC', 'SOL', 'ETH']
 hyper_message = {
     "method": "subscribe",
     "subscription":{ "type": "l2Book", "coin": "BTC" }
@@ -62,7 +62,7 @@ async def bybit_stream(): #returns bid price, bid size
     )
     ws.orderbook_stream(
         depth=50,
-        symbol="BTCUSDT",
+        symbol="SOLUSDT",
         callback=handle_message)
 # Run the asyncio event loop
 # asyncio.run(hyperliquid_stream())

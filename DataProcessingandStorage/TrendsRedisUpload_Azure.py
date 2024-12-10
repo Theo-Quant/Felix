@@ -34,7 +34,7 @@ class TrendsRedisUpload:
 
     async def read_data_batch(self, batch_size=10000):
         '''
-        Pulls the top 300k rows using pure pyodbc
+        Pulls the top 300k rows using pyodbc
         '''
         conn = pyodbc.connect(self.CONNECTION_STRING)
         try:
@@ -68,8 +68,6 @@ class TrendsRedisUpload:
 
             # Convert to pandas DataFrame
             df = pd.DataFrame.from_records(rows, columns=columns)
-            print(df.head())
-            print(df.tail())
 
             # Yield the data in chunks
             for i in range(0, len(df), batch_size):
@@ -100,6 +98,7 @@ class TrendsRedisUpload:
 
     async def calculate_ma_range(self, df, window_m, window_l):
         ma_stats = []
+        df.dropna(inplace=True)
         grouped = df.groupby('coin')
         for coin, group in grouped:
             sell_ma_m, sell_std_m = self.calculate_stats_E(group, 'sell_spread', window_m)

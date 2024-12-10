@@ -546,7 +546,7 @@ SPREAD_STEPS = {'STORJ': '4/4', 'TURBO': '5/4', 'MEW': '4/4', 'JTO': '4/5', 'ORD
 
 
 HEDGE1 = ['NOT', 'TIA', 'OM', 'MKR', 'AAVE', 'JTO', 'ORDI', 'STORJ', 'ENJ', 'LQTY', 'MEW']
-HEDGE2 = ['TURBO', 'AR', 'TRB', 'ORBS', 'AUCTION', 'SOL', 'ZETA', 'SUI', 'TRX', 'DOGS', 'UMA', 'POPCAT'] # ALPHA goes here when un-paused
+HEDGE2 = ['TURBO', 'AR', 'TRB', 'AUCTION', 'SOL', 'ZETA', 'SUI', 'TRX', 'DOGS', 'UMA', 'POPCAT'] # ALPHA goes here when un-paused
 HEDGE3 = ['TNSR', 'AGLD', 'RDNT', 'BNT', 'TON', 'UXLINK', 'BIGTIME', 'HMSTR', 'APE', 'NEIRO', 'MASK']
 IN_TRADE = HEDGE1 + HEDGE2 + HEDGE3 + ['REEF', 'BANANA']
 

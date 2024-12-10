@@ -23,7 +23,7 @@ logging.basicConfig(
     ]
 )
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
-bybit_ws_url = "wss://stream.bybit.com/realtime"
+# bybit_ws_url = "wss://stream.bybit.com/realtime" # maybe do not need it
 hyperliquid_ws_url = "wss://api.hyperliquid.xyz/ws"
 hyperliquid_stream_types = ['l2Book']
 bybit_stream_types = [1, 50, 200, 500] # need to find the stream for this one the depth, use the websocket for this
@@ -32,8 +32,10 @@ hyper_message = {
     "method": "subscribe",
     "subscription":{ "type": "l2Book", "coin": "BTC" }
 }
+orderbook_data = list()
 def handle_message(message):
     logging.info(f"Received message: {message}")
+    # orderbook_data.append(message["data"])
 async def hyperliquid_stream(): # return  px(price), sz(size), n(number of trades)
     try:
         # Connect to the WebSocket server
@@ -63,4 +65,5 @@ async def bybit_stream(): #returns bid price, bid size
         symbol="BTCUSDT",
         callback=handle_message)
 # Run the asyncio event loop
+# asyncio.run(hyperliquid_stream())
 asyncio.run(bybit_stream())

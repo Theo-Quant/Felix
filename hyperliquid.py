@@ -52,9 +52,23 @@ async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  
 #TODO2
 def process_hyperliquid_message(symbol, stream_type, message):
     logging.debug(f"Received hyperliquid message for {symbol} ({stream_type}): {message}")
-    # logging.info(f"received message is {message}")
+    logging.info(f"received message is {message}")
     data = json.loads(message) #parsing the data
-    print("data:", data)
-
+    time  = 0
+    if 'data' in data:
+        if 'levels' in data["data"]:
+            levels = data["data"]["levels"]
+            bids = levels[0] # [{'px': '97403', 'sz':'4.6913', 'n':'10'}]
+            asks = levels[1] #[{'px': '97403', 'sz':'4.6913', 'n':'10'}]
+            # print("bids:", bids)
+            # print("asks:", asks)
+            new_data = {
+                'time': data['data']['time'],
+                'bids': bids,
+                'asks': asks
+            }
+            print(new_data)
+    else:
+        logging.warning(f"Unexpected message structure for {symbol} ({stream_type}): {data}")
 
 asyncio.run(hyperliquid_websocket_handler(hyperliquid_ws_url, symbols[0], hyperliquid_stream_types[0]))

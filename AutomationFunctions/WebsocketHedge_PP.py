@@ -45,7 +45,7 @@ import websockets
 # import config
 from datetime import datetime
 import ccxt.async_support as ccxt
-import TradingModule_PPConfig as config
+import dummy_config as config
 from decimal import Decimal, InvalidOperation
 
 from pprint import pprint

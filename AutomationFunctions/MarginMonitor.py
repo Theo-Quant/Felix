@@ -201,14 +201,12 @@ class MarginMonitor:
                 # Fetch account balance
                 account_info = self.okx.fetch_balance({'type': 'trading'})
 
-                # # Process the account info
-                # spot_assets = 0
-                # for detail in account_info['info']['data'][0]['details']:
-                #     print(detail)
-                #     if detail['accAvgPx']:
-                #         equsd = detail.get('eqUsd', '0')
-                #         spot_assets += float(equsd)
-                # print(spot_assets)
+                # Process the account info
+                spot_assets = 0
+                for detail in account_info['info']['data'][0]['details']:
+                    if detail['accAvgPx']:
+                        equsd = detail.get('eqUsd', '0')
+                        spot_assets += float(equsd)
 
                 positions = self.okx.fetch_positions()
 
@@ -220,8 +218,7 @@ class MarginMonitor:
                     maintenance_margin = float(usdt_details['mmr'])
                     margin_balance = float(usdt_details['availEq'])
                     margin_level = (1 / maintenance_margin * 100) if maintenance_margin != 0 else float('inf')
-                    margin_ratio = 1 / float(usdt_details['mgnRatio']) * 100 if float(
-                        usdt_details['mgnRatio']) != 0 else 0
+                    margin_ratio = 1 / float(usdt_details['mgnRatio']) * 100 if usdt_details['mgnRatio'] != '' else 0
                     unrealized_pnl = round(float(usdt_details['upl']), 2)
                     total_position_size = sum(
                         abs(float(pos['info']['notionalUsd']) * (-1 if pos['side'] == 'short' else 1)) for pos in
@@ -237,8 +234,8 @@ class MarginMonitor:
                         'maintenanceMargin': maintenance_margin,
                         'unrealizedPnL': unrealized_pnl,
                         'totalPositionSize': total_position_size,
-                        'netPositionSize': net_position_size #,
-                        # 'okx_spot': spot_assets
+                        'netPositionSize': net_position_size,
+                        'okx_spot': spot_assets
                     }
                     return margin_info
                 else:
@@ -352,22 +349,25 @@ class MarginMonitor:
     def get_bybit_margin_info(self, max_retries=3, retry_delay=5):
         for attempt in range(max_retries):
             try:
+                # Fetch position info
+                position_info = self.bybit.fetch_positions()
+
                 # Fetch account info
                 account_info = self.bybit.fetch_balance()
-                # total equity = totalEquity
-                # marginBalance = totalMarginBalance
-                # maintenance margin = totalMaintenanceMargin
-                # marginRatio = accountMMRate
-
-                total_equity = float(usdt_details['walletBalance']) + float(usdt_details['unrealisedPnl'])
-                maintenance_margin = float(account_info['totalPositionMM'])
-                margin_balance = float(account_info['equity'])
-                unrealized_pnl = float(usdt_details['unrealisedPnl'])
-                margin_ratio = (maintenance_margin / margin_balance * 100) if margin_balance != 0 else 0
+                total_equity = float(account_info['info']['result']['list'][0]['totalEquity'])
+                margin_balance = float(account_info['info']['result']['list'][0]['totalMarginBalance'])
+                maintenance_margin = float(account_info['info']['result']['list'][0]['totalMaintenanceMargin'])
+                margin_ratio = float(account_info['info']['result']['list'][0]['accountMMRate'])
+                unrealized_pnl = float(account_info['info']['result']['list'][0]['totalPerpUPL'])
                 net_position_size = sum(
                     float(pos['notional']) * (-1 if pos['side'] == 'short' else 1) for pos in position_info
                 )
                 total_position_size = abs(net_position_size)
+
+                spot_assets = 0
+                for detail in account_info['info']['result']['list'][0]['coin']:
+                    if detail['coin'] != 'USDT':
+                        spot_assets += float(detail['usdValue'])
 
                 margin_info = {
                     'totalEquity': total_equity,
@@ -376,7 +376,8 @@ class MarginMonitor:
                     'maintenanceMargin': maintenance_margin,
                     'unrealizedPnL': unrealized_pnl,
                     'totalPositionSize': total_position_size,
-                    'netPositionSize': net_position_size
+                    'netPositionSize': net_position_size,
+                    'bybit_spot': spot_assets
                 }
                 return margin_info
             except Exception as e:
@@ -446,7 +447,7 @@ class MarginMonitor:
             message += f"Unrealized PnL: {okx_margin['unrealizedPnL']:.2f}\n"
             message += f"Perp Notional: {okx_margin['totalPositionSize']:.2f}\n"
             message += f"Perp Net Notional: {okx_margin['netPositionSize']:.2f}\n"
-            # message += f"Spot Notional: {okx_margin['okx_spot']:.2f}\n\n"
+            message += f"Spot Notional: {okx_margin['okx_spot']:.2f}\n\n"
 
             message += "*Bybit Margin Info:*\n"
             message += f"Total Equity: {bybit_margin['totalEquity']:.2f}\n"
@@ -455,7 +456,8 @@ class MarginMonitor:
             message += f"Maintenance Margin: {bybit_margin['maintenanceMargin']:.2f}\n"
             message += f"Unrealized PnL: {bybit_margin['unrealizedPnL']:.2f}\n"
             message += f"Perp Notional: {bybit_margin['totalPositionSize']:.2f}\n"
-            message += f"Perp Net Notional: {bybit_margin['netPositionSize']:.2f}\n\n"
+            message += f"Perp Net Notional: {bybit_margin['netPositionSize']:.2f}\n"
+            message += f"Spot Notional: {bybit_margin['bybit_spot']:.2f}\n\n"
 
             # message += "*Binance Margin Info:*\n"
             # message += f"Total Equity: {binance_margin['totalAccountValue']:.2f}\n"
@@ -485,7 +487,6 @@ class MarginMonitor:
             message += f"Total Unrealized PnL: $ {round(bybit_margin['unrealizedPnL'] + okx_margin['unrealizedPnL'], 2)}\n"
             message += f"Total Balance : $ {round(bybit_margin['totalEquity'] + okx_margin['totalEquity'], 2)}\n"
             message += f"Realized Balance : $ {round(bybit_margin['totalEquity'] + okx_margin['totalEquity'] - (bybit_margin['unrealizedPnL'] + okx_margin['unrealizedPnL']), 2)}\n"
-            message += f"BNB Notional : $ {round(bybit_margin['bnb_notional'], 2)}\n\n"
 
 
             okx_positions = self.okx.fetch_positions()
@@ -496,7 +497,7 @@ class MarginMonitor:
             formatted_positions = self.format_positions(okx_positions, bybit_positions)
 
             if formatted_positions:
-                message += "Current Positions (OKX/BIN/GATE/NET)\n"
+                message += "Current Positions (OKX/BYBIT/NET)\n"
                 message += "\n".join(formatted_positions)
 
             self.send_telegram_message(message, self.chat_id, self.bot_token)

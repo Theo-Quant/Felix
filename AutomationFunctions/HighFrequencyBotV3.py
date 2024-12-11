@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import json
 import ccxt.async_support as ccxt_async
@@ -21,6 +22,9 @@ as the bot enters more and more positions.
 
 Change the amend order feature. Only amend an order if it is in the trading range. If the spread isn't in trading range, remove the order.
 """
+
+if sys.platform.startswith('win'):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 #region Initialization
 logger = config.setup_logger('HighFrequencyBotV3')
@@ -60,7 +64,7 @@ class CSVLogger:
         if self.current_file:
             self.current_file.close()
         timestamp = datetime.now().strftime("%Y%m%d")
-        onedrive_path = r"C:\Users\nghon\OneDrive\Documents\tradelogs"
+        onedrive_path = "tradelogs/"
         filename = os.path.join(onedrive_path, f"bot_{self.bot_id}_{timestamp}_V3.5.csv")
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
@@ -125,7 +129,8 @@ class TradingBot:
     def __init__(self, symbol, notional_per_trade, bot_id, max_notional):
         self.csv_logger = CSVLogger(bot_id)
         self.symbol = symbol
-        self.params_key = f'bot_params_{bot_id}'
+        # self.params_key = f'bot_params_{bot_id}'
+        self.params_key = f'Perp_Perp_bot_params_{bot_id}'
         self.default_params = {
             'okx_contracts_per_trade': 1,
             'ma': 10,
@@ -242,7 +247,7 @@ class TradingBot:
         for item in data:
             try:
                 # Parse the timestamp and localize it to Hong Kong time
-                item_time = datetime.fromisoformat(item['timestamp']).astimezone(hk_tz)
+                item_time = datetime.fromisoformat(str(item['timestamp'])).astimezone(hk_tz)
                 if item_time > one_second_ago and item[key] is not None:  # Check if the value is not None
                     recent_values.append(item[key])
             except ValueError:
@@ -287,7 +292,7 @@ class TradingBot:
         Use the position data to in
         """
         # Fetch Position Data
-        position_data = redis_client.get(f'bot_params_{coin}')
+        position_data = redis_client.get(f'Perp_Perp_bot_params_{coin}')
         position_data_dict = json.loads(position_data)
         current_position = float(position_data_dict['position_size'])
         max_position = 300000   # Max position used to calculate the current position ratio
@@ -428,7 +433,7 @@ class TradingBot:
         print('starting...')
         await self.initialize_clients()
         # initially pull the latest row once to get a 25% adjustment buffer value
-        self.adjustment_value = (self.get_latest_row(f'combined_data_{self.symbol}'))['best_bid_price_okx'] * 0.25
+        self.adjustment_value = (self.get_latest_row(f'OKX_PERP_BYBIT_PERP_{self.symbol}'))['best_bid_price_okx'] * 0.25
         while True:
             self.in_trade_range = False
             self.timeoftrade = datetime.now()
@@ -437,7 +442,7 @@ class TradingBot:
                 await self.stop_trading()
                 break
             self.update_params()
-            latest_data = self.get_latest_data(f'combined_data_{self.symbol}', count=self.ma)
+            latest_data = self.get_latest_data(f'OKX_PERP_BYBIT_PERP_{self.symbol}', count=self.ma)
             if latest_data and len(latest_data) > 0:
                 latest_row = latest_data[-1]
             else:

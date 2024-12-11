@@ -59,7 +59,7 @@ class TrendsRedisUpload:
                     bybit_ask1
                 FROM [dbo].[exchange_dataV2]
                 WHERE id > {max_id - 300000}
-                ORDER BY id DESC
+                ORDER BY id ASC
             '''
 
             cursor.execute(query)

@@ -29,9 +29,11 @@ def send_telegram_message(message, bot_token2, chat_id2):
     return response.json()
 
 IN_TRADE = [
-    "BTC",
-    "ETH",
-    "SUI"
+    "CTC",
+    "FTM",
+    "DOGE",
+    "DOGS",
+    "XRP"
 ]
 
 BYBIT_API_KEY = '7EIEVUIs0aoD50WgBA'
@@ -40,6 +42,8 @@ BYBIT_SECRET_KEY = '2RLhqq6bMulozcwBLRdqS4H3De4rq1TcW6vu'
 OKX_API_KEY = 'ce700b61-626c-4ee3-8ab9-bcef4e825ad7'
 OKX_SECRET_KEY = 'EDE176905B89C975850609255E1A0BAA'
 OKX_PASSPHRASE = 'TheoBull2024!'
+
+SUPPORT_EXCHANGES = ['BINANCE', 'OKX', 'GATE', 'BITGET', 'BYBIT']
 
 OKX_CONTRACT_SZ = {
     'NEIRO-USDT-SWAP': 1000,
@@ -240,4 +244,24 @@ OKX_CONTRACT_SZ = {
     'ZK-USDT-SWAP': 10.0,
     'ZRO-USDT-SWAP': 1.0,
     'ZRX-USDT-SWAP': 10.0,
+}
+
+EXCHANGE_WS_URLS = {
+    "BINANCE_PERP": "wss://fstream.binance.com/ws",
+    "OKX_PERP": "wss://ws.okx.com:8443/ws/v5/public",
+    "GATE_PERP": "wss://fx-ws.gateio.ws/v4/ws/usdt",
+    "BITGET_PERP": "wss://ws.bitget.com/v2/ws/public",
+    "BYBIT_PERP": "wss://stream.bybit.com/v5/public/linear"
+}
+
+STREAM_TYPES = {
+    "OKX_PERP": ["books5", "books"], # In order to use books-l2-tbt and books50-l2-tbt, users must login before subscribing and are limited to VIP levels 5 and 4, respectively.
+    "BINANCE_PERP": [
+                      "depth5@100ms", "depth10@100ms", "depth20@100ms",
+                      "depth5@250ms", "depth10@250ms", "depth20@250ms",
+                      "depth5@500ms", "depth10@500ms", "depth20@500ms",
+                    ],
+    "GATE_PERP": ["futures.order_book"],
+    "BITGET_PERP": ["books5", "books15"],
+    "BYBIT_PERP": ["orderbook.50.", "orderbook.200.", "orderbook.500."]
 }

@@ -3,3 +3,5 @@ dev.ipynb
 dev.py
 *.log
 *.env
+websockets_data/
+*tradelogs/

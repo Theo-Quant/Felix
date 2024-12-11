@@ -1,15 +1,18 @@
 from pybit.unified_trading import WebSocket
 from time import sleep
+def handle_message(message, symbol):
+    print(symbol)
+    print(message)
+
 ws = WebSocket(
-    testnet =False,
+    testnet=False,
     channel_type="linear",
 )
-def handle_message(message):
-    print(message)
+
+# Using a lambda to correctly set the callback
 ws.orderbook_stream(
     depth=50,
     symbol="BTCUSDT",
-    callback=handle_message
-)
+    callback=lambda message: handle_message(message, symbol="BTCUSDT"))
 while True:
     sleep(1)

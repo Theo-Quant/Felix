@@ -1,17 +1,23 @@
-import json
+async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  [level1, level2] such that levels = [px(price), sz(size), n(number of trades)] , levels1 = bid, levels2 = ask
+    hyperliquid_message = {
+        "method": "subscribe",
+        "subscription": {"type": "l2Book", "coin": symbol}
+    }
+    try:
+        # Connect to the WebSocket server
+        async with websockets.connect(ws_url) as websocket:
+            logging.info("Connected to Hyperliquid WebSocket")
 
-# Creating a dictionary
-Dictionary = {1: 'Welcome', 2: 'to',
-              3: 'Geeks', 4: 'for',
-              5: 'Geeks'}
+            # Send subscription message
+            await websocket.send(json.dumps(hyperliquid_message))
+            logging.info("Sent subscription message: %s", json.dumps(hyperliquid_message))
 
-# Converts input dictionary into
-# string and stores it in json_string
-json_string = json.dumps(Dictionary)
-print('Equivalent json string of input dictionary:',
-      json_string)
-print("        ")
+            # Receive data from WebSocket
+            while True:
+                data = await websocket.recv()
+                # logging.info("Received data: %s", data)
+                handle_message(data)
 
-# Checking type of object
-# returned by json.dumps
-print(type(json_string))
+
+    except Exception as e:
+        logging.error("Error: %s", str(e))

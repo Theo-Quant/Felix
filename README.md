@@ -1,10 +1,26 @@
 # ByBit&HyperLiquid WebSocket Integration
 
+## Libraries 
+```python
+import asyncio
+import websockets
+import json
+import time
+import redis
+import logging
+from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime, timezone
+from collections import defaultdict
+import config
+import hmac
+import base64
+from pybit.unified_trading import WebSocket
+```
 ## Introduction
 
 This project, `byBitHyperLiquid.py`, establishes WebSocket connections to both the Bybit and HyperLiquid trading platforms
 
-## Compilation
+## Compilation Command
 * Compiled by writing in terminal `python byBitHyperLiquid.py`.
 
 ## Documentation 
@@ -14,3 +30,6 @@ This project, `byBitHyperLiquid.py`, establishes WebSocket connections to both t
 ## Variables
 The symbols in Hyperliquid is showing the pattern such as ETH, BTC, DOGE and etc whilst the symbols in Bybit shows the pattern of 
 BTCUSDT, ETHUSDT, DOGEUSDT which is given in Hyperliquid`symbols = ['ETH', 'BTC', 'DOGE', 'SOL']` and  for bybit `[f'{symbol}USDT' for symbol in sybmols]`.
+
+## Methods
+* Use  `json.dump()` method that can convert a Python object into a JSON string. Can be used for writing/dumping JSON to a file/socket.

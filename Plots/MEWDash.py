@@ -18,8 +18,8 @@ TIMEOUT = 30  # cache timeout in seconds
 
 @cache.memoize(timeout=TIMEOUT)
 def read_csv_file(coin):
-    filename = f'{coin}_20241210.csv'
-    linux_path = f"/home/ec2-user/TradeLogs/20241210/{filename}"
+    filename = f'{coin}_20241211.csv'
+    linux_path = f"/home/ec2-user/TradeLogs/20241211/{filename}"
 
     if not os.path.exists(linux_path):
         print(f"File not found: {linux_path}")

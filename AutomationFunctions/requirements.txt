@@ -1,0 +1,7 @@
+ccxt
+pandas
+pyodbc
+redis
+schedule
+python-dotenv
+numpy

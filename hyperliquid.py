@@ -52,8 +52,9 @@ async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  
 #TODO2
 def process_hyperliquid_message(symbol, stream_type, message):
     logging.debug(f"Received hyperliquid message for {symbol} ({stream_type}): {message}")
-    logging.info(f"received message is {message}")
-    data = json.loads(message)
+    # logging.info(f"received message is {message}")
+    data = json.loads(message) #parsing the data
+    print("data:", data)
 
 
 asyncio.run(hyperliquid_websocket_handler(hyperliquid_ws_url, symbols[0], hyperliquid_stream_types[0]))

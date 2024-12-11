@@ -27,12 +27,28 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)
 hyperliquid_ws_url = "wss://api.hyperliquid.xyz/ws"
 hyperliquid_stream_types = ['l2Book']
 bybit_stream_types = [1, 50, 200, 500] # need to find the stream for this one the depth, use the websocket for this
-symbol = ['BTC', 'SOL', 'ETH'] # for hyperliquid
-hyper_message = {
+symbols = ['BTC', 'SOL', 'ETH'] # for hyperliquid
+hyperliquid_message = {
     "method": "subscribe",
     "subscription":{ "type": "l2Book", "coin": "BTC" }
 }
 orderbook_data = list()
+latest_data = {symbol: {
+    'hyperliquid': {'bids': defaultdict(float), 'asks': defaultdict(float), 'time': 0},
+    'okx': {
+        stream_type: {'bids': [], 'asks': [], 'time': None}
+        for stream_type in bybit_stream_types
+    },
+    'local_orderbook': {'bids': [], 'asks': [], 'time': None}
+} for symbol in symbols}
+last_process_time = {symbol: 0 for symbol in symbols}
+
+def get_timestamp():
+    return int(time.time())
+def sign(message, secret_key):
+    mac = hmac.new(bytes(secret_key, encoding='utf8'), bytes(message, encoding='utf-8'), digestmod='sha256')
+    d = mac.digest()
+    return base64.b64encode(d)
 def handle_message(message):
     logging.info(f"Received message: {message}")
     # orderbook_data.append(message["data"])
@@ -43,8 +59,8 @@ async def hyperliquid_stream(): # return  [level1, level2] such that levels = [p
             logging.info("Connected to Hyperliquid WebSocket")
 
             # Send subscription message
-            await websocket.send(json.dumps(hyper_message))
-            logging.info("Sent subscription message: %s", json.dumps(hyper_message))
+            await websocket.send(json.dumps(hyperliquid_message))
+            logging.info("Sent subscription message: %s", json.dumps(hyperliquid_message))
 
             # Receive data from WebSocket
             while True:
@@ -65,5 +81,5 @@ async def bybit_stream(): #returns dict('b':[bid price, bid size], 'a':[ask_pric
         symbol="SOLUSDT",
         callback=handle_message)
 # Run the asyncio event loop
-asyncio.run(hyperliquid_stream())
-# asyncio.run(bybit_stream())
+# asyncio.run(hyperliquid_stream())
+asyncio.run(bybit_stream())

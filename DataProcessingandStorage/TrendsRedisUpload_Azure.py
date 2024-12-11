@@ -55,7 +55,7 @@ class TrendsRedisUpload:
                     okx_ask1
                 FROM [dbo].[exchange_dataV2]
                 WHERE id > {max_id - 300000}
-                ORDER BY id DESC
+                ORDER BY id ASC
             '''
 
             cursor.execute(query)
@@ -105,7 +105,6 @@ class TrendsRedisUpload:
             buy_ma_m, buy_std_m = self.calculate_stats_E(group, 'buy_spread', window_m)
             sell_ma_l, sell_std_l = self.calculate_stats(group, 'sell_spread', window_l)
             buy_ma_l, buy_std_l = self.calculate_stats(group, 'buy_spread', window_l)
-
             latest_data = group.iloc[-1]
             current_sell_spread = latest_data['sell_spread']
             current_buy_spread = latest_data['buy_spread']

@@ -86,8 +86,8 @@ def process_hyperliquid_message(symbol, stream_type, message):
             }
             print(new_data)
             latest_data[symbol]['hyperliquid'][stream_type] = new_data
-            # update_local_orderbook(symbol, stream_type, new_data)
-            process_data(symbol)
+            update_local_orderbook(symbol, stream_type, new_data)
+            # process_data(symbol)
 
     else:
         logging.warning(f"Unexpected message structure for {symbol} ({stream_type}): {data}")

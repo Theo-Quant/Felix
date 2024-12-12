@@ -57,7 +57,7 @@ def update_local_orderbook(symbol, stream_type, new_data): #confirmed
         sorted_levels = sorted(current_levels.items(), key=lambda x: -x[0] if side == 'bids' else x[0])
         return sorted_levels[:5]
 
-    if stream_type == 'books5':
+    if stream_type == 'l2Book':
         # Replace the entire local orderbook with books5 data
         local_ob['bids'] = new_data['bids']
         local_ob['asks'] = new_data['asks']

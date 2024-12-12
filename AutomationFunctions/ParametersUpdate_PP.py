@@ -75,12 +75,13 @@ if __name__ == "__main__":
     # Perp Perps
     manager.update_bot_params("CTC", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
     manager.update_bot_params("FTM", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
-    manager.update_bot_params("DOGE", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
+    manager.update_bot_params("SUI", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
     manager.update_bot_params("DOGS", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
-    manager.update_bot_params("XRP", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
+    manager.update_bot_params("AAVE", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
 
     # Delete parameters
-    # manager.delete_bot_params('SUI')
+    manager.delete_bot_params('DOGE')
+    manager.delete_bot_params('XRP')
 
     # Get and display parameters for all bots
     print("\nDisplaying parameters for all bots:")

@@ -77,6 +77,8 @@ def process_hyperliquid_message(symbol, stream_type, message):
             asks = levels[1] #[{'px': '97403', 'sz':'4.6913', 'n':'10'}]
             # print("bids:", bids)
             # print("asks:", asks)
+            bids = [[float(bid['px']), float(bid['sz'])] for bid in bids]
+            asks = [[float(ask['px']), float(ask['sz'])] for ask in asks]
             new_data = {
                 'time': data['data']['time'],
                 'bids': bids,
@@ -84,7 +86,7 @@ def process_hyperliquid_message(symbol, stream_type, message):
             }
             print(new_data)
             latest_data[symbol]['hyperliquid'][stream_type] = new_data
-            update_local_orderbook(symbol, stream_type, new_data)
+            # update_local_orderbook(symbol, stream_type, new_data)
             process_data(symbol)
 
     else:

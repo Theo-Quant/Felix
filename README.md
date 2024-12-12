@@ -30,6 +30,8 @@ This project, `byBitHyperLiquid.py`, establishes WebSocket connections to both t
 ## Variables
 The symbols in Hyperliquid is showing the pattern such as ETH, BTC, DOGE and etc whilst the symbols in Bybit shows the pattern of 
 BTCUSDT, ETHUSDT, DOGEUSDT which is given in Hyperliquid`symbols = ['ETH', 'BTC', 'DOGE', 'SOL']` and  for bybit `[f'{symbol}USDT' for symbol in sybmols]`.
+Formats of symbol are based on ['ETH', 'BTC'] and depending on the channel, the foramtting could be different such that 
+
 
 ## Methods
 * Use  `json.dump()` method that can convert a Python object into a JSON string. Can be used for writing/dumping JSON to a file/socket.

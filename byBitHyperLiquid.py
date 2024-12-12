@@ -106,7 +106,7 @@ def get_current_time_ms(): #confirmed
     return int(time.time() * 1000)
 
 rate_limiter = RateLimiter(interval=0.025)
-def calculate_impact_price(order_book, imn): #confirmed
+def calculate_impact_price(order_book, imn) ->float: #confirmed
     accumulated_notional = 0.0
     accumulated_quantity = 0.0
 
@@ -149,8 +149,9 @@ async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  
 #TODO2
 def process_hyperliquid_message(symbol, stream_type, message):
     pass
-def get_top_n(order_dict, n=5, reverse=False): #confirmed
-    sorted_orders = sorted(order_dict.items(), key=lambda x: float(x[0]), reverse=reverse)
+def get_top_n(order_dict, n=5, reverse=False): #confirmed , only value if the dictionary is in a form of dictionary with a format list of  [[price1:quantity1],[price2:quantity2], .. , [pricen:quantityn]] and in
+    #works for the bybit
+    sorted_orders = sorted(order_dict.items(), key=lambda x: float(x[0]), reverse=True)
     return [(float(price), float(quantity)) for price, quantity in sorted_orders[:n]]
 def cleanup_orderbook(symbol): #confirmed
     current_time = time.time()
@@ -179,7 +180,34 @@ async def bybit_websocket_handler(symbol) : #returns dict('b':[bid price, bid si
 # asyncio.run(bybit_stream())
 #TODO5
 def process_data(symbol):
-    pass
+    global last_process_time
+    current_time = time.time() * 1000
+    time_diff = current_time - last_process_time[symbol]
+    last_process_time[symbol] = current_time
+    hyperliquid_data_available = latest_data[symbol]['local_orderbook']['book'] is not None
+    if hyperliquid_data_available and latest_data[symbol]['bybit']['time'] != 0:
+        if rate_limiter.should_process(symbol):
+            current_time = get_current_time_ms()
+            #use the local orderbook for bybit data
+            hyperliquid_latest = latest_data[symbol]['local_orderbook']
+            combined_data = {
+                'timestamp': get_current_utc_time_with_ms(),
+                'bybit': {
+                    'time': latest_data[symbol]['bybit']['time'],
+                    'bids': get_top_n(latest_data[symbol]['bybit']['bids'], 5, reverse=True),
+                    'asks': get_top_n(latest_data[symbol]['bybit']['asks'], 5)
+                },
+                'hyperliquid': hyperliquid_latest,
+                'timelag': current_time - min(latest_data[symbol]['bybit']['time'], hyperliquid_latest['time'])
+            }
+            impact_bid_hyperliquid = calculate_impact_price(hyperliquid_latest['bids'], 100)
+            impact_ask_hyperliquid = calculate_impact_price(hyperliquid_latest['asks'], 100)
+            impact_bid_bybit = calculate_impact_price(combined_data['bybit']['bids'], 100) #confirmed
+            impact_ask_bybit = calculate_impact_price(combined_data['bybit']['asks'], 100) #confirmed
+            if all(x is not None for x in [impact_bid_hyperliquid, impact_ask_hyperliquid, impact_bid_bybit, impact_ask_bybit]):
+                pass
+
+
 async def main():
     tasks = []
     for symbol in symbols:
@@ -198,10 +226,6 @@ async def run():
             logging.error(f"Error occurred: {e}")
             logging.info("Restarting the script...")
             await asyncio.sleep(5)
-
-if __name__ == "__main__":
-    asyncio.run(run())
-
 
 if __name__ == "__main__":
     try:

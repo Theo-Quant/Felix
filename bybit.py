@@ -12,6 +12,7 @@ import hmac
 import base64
 from pybit.unified_trading import WebSocket
 from time import sleep
+from byBitHyperLiquid import update_local_orderbook, process_data, rate_limiter
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s:%(message)s',
@@ -40,21 +41,18 @@ latest_data = {symbol: {
 last_process_time = {symbol: 0 for symbol in symbols}
 def process_bybit_message(message, symbol, stream_type): # returns {"s': symbol , "ts": timestamp(ms), "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size], "u": updateID}
     # logging.debug(f"Received Binance message for {symbol} and {stream_type}")
-    event_time= message['ts']
+    event_time= message['ts'] #
     if 'data' in message:
              # returns {"s": symbol, "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size]}
         # print(message['data'])
-        bid = message['data']['b']
-        ask = message['data']['a']
+        bid = message['data']['b'] #[[bid price1, bid_size1], [bid_price2, bid_size2], .. , [bid_priceN, bid_sizeN]]
+        ask = message['data']['a']#[[ask_price1, ask_size1], [ask_price2, ask_size2], .. , [ask_priceN, ask_sizeN]]
         bid = {float(price) : float(size) for price, size in bid}
         ask = {float(price) : float(size) for price, size in ask}
         latest_data[symbol]['bybit'][stream_type]['bids'] = bid
         latest_data[symbol]['bybit'][stream_type]['asks'] = ask
-        print(message['data'])
-
-
-
-
+        latest_data[symbol]['bybit'][stream_type]['time'] = event_time
+        process_data(symbol)
 #TODO4
 async def bybit_websocket_handler(symbol, depth) : #returns dict('b':[bid price, bid size], 'a':[ask_price, ask_size])
     while True:

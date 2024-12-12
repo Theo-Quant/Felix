@@ -217,6 +217,14 @@ class TradingBot:
         print('initializing markets')
         await bybit.load_markets()
         await okx.load_markets()
+        try:
+            await okx.set_leverage(8, f'{self.symbol}-USDT-SWAP')
+            await bybit.set_leverage(8, f'{self.symbol}USDT')
+        except Exception as e:
+            if 'leverage not modified' in str(e).lower():
+                logger.info(f"Leverage already set to 8")
+            else:
+                logger.error(f"Error setting leverage: {e}")
 
     @staticmethod
     def get_latest_data(key, count):

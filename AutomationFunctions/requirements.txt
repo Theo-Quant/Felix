@@ -5,3 +5,4 @@ redis
 schedule
 python-dotenv
 numpy
+sqlalchemy

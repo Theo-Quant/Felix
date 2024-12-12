@@ -73,11 +73,11 @@ if __name__ == "__main__":
     """
 
     # Perp Perps
-    manager.update_bot_params("CTC", notional_per_trade=50, ma=10, max_notional=250, default_max_notional=250, std_coeff=1, min_width=0.065)
-    manager.update_bot_params("FTM", notional_per_trade=50, ma=10, max_notional=250, default_max_notional=250, std_coeff=1, min_width=0.065)
-    manager.update_bot_params("DOGE", notional_per_trade=50, ma=10, max_notional=250, default_max_notional=250, std_coeff=1, min_width=0.065)
-    manager.update_bot_params("DOGS", notional_per_trade=50, ma=10, max_notional=250, default_max_notional=250, std_coeff=1, min_width=0.065)
-    manager.update_bot_params("XRP", notional_per_trade=50, ma=10, max_notional=250, default_max_notional=250, std_coeff=1, min_width=0.065)
+    manager.update_bot_params("CTC", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
+    manager.update_bot_params("FTM", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
+    manager.update_bot_params("DOGE", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
+    manager.update_bot_params("DOGS", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
+    manager.update_bot_params("XRP", notional_per_trade=100, ma=10, max_notional=400, default_max_notional=400, std_coeff=1, min_width=0.065)
 
     # Delete parameters
     # manager.delete_bot_params('SUI')

@@ -1,7 +1,7 @@
 """
 Code used to pull from the database and get data to calculate bollinger band ranges
 """
-
+import os
 import pandas as pd
 import redis
 import asyncio
@@ -13,6 +13,7 @@ import traceback
 import sys
 import numpy as np
 import pyodbc
+from dotenv import load_dotenv
 
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -20,6 +21,7 @@ pd.set_option('display.width', 1000)
 
 logger = config.setup_logger('TrendUpload')
 
+load_dotenv()
 
 class TrendsRedisUpload:
     def __init__(
@@ -182,7 +184,16 @@ async def update_trends_redis(
 
 def update_trends():
     try:
-        connection_string = "Driver={SQL SERVER};Server=tcp:theosql.database.windows.net,1433;Database=arbitrage_db_2024-03-22T23-30Z;Uid=THEOsql;Pwd=THEOBullRun2024!;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+        connection_string = (
+            f"Driver={os.getenv('THEO_DB_DRIVER')};"
+            f"Server=tcp:{os.getenv('THEO_DB_SERVER')},1433;"
+            f"Database={os.getenv('THEO_DB_DATABASE')};"
+            f"Uid={os.getenv('THEO_DB_UID')};"
+            f"Pwd={os.getenv('THEO_DB_PASSWORD')};"
+            f"Encrypt=yes;"
+            f"TrustServerCertificate=no;"
+            f"Connection Timeout=30;"
+        )
         asyncio.run(update_trends_redis(connection_string))
     except Exception as e:
         print(f"Error in update_trends: {e}")

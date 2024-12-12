@@ -207,16 +207,12 @@ def process_data(symbol):
             if all(x is not None for x in [impact_bid_hyperliquid, impact_ask_hyperliquid, impact_bid_bybit, impact_ask_bybit]): #means all of the component in iterator should not be none
                 combined_data_impact = {
                     'timestamp': get_current_utc_time_with_ms(),
-                    'entry_spread': round(100 * (impact_bid_hyperliquid - impact_ask_bybit) / impact_ask_bybit, 4),
-                    'exit_spread': round(100 * (impact_ask_hyperliquid - impact_bid_bybit) / impact_bid_bybit, 4),
                     'best_bid_price_hyperliquid': hyperliquid_latest['bids'][0][0],
                     'best_ask_price_hyperliquid': hyperliquid_latest['asks'][0][0],
                     'best_bid_price_bybit': combined_data['bybit']['bids'][0][0],
                     'best_ask_price_bybit': combined_data['bybit']['asks'][0][0],
-                    'impact_bid_price_hyperliquid': round(impact_bid_hyperliquid, 7),
-                    'impact_ask_price_hyperliquid': round(impact_ask_hyperliquid, 7),
-                    'impact_bid_price_bybit': round(impact_bid_bybit, 7),
-                    'impact_ask_price_bybit': round(impact_ask_bybit, 7),
+                    'entry_spread': round(100 * (hyperliquid_latest['bids'][0][0] - combined_data['bybit']['asks'][0][0]) / combined_data['bybit']['asks'][0][0], 4),
+                    'exit_spread': round(100 * (hyperliquid_latest['asks'][0][0] - combined_data['bybit']['bids'][0][0]) / combined_data['bybit']['bids'][0][0], 4),
                     'hyperliquid_orderbook': hyperliquid_latest,
                     'bybit_orderbook': combined_data['bybit'],
                     'timelag': combined_data['timelag'],
@@ -246,8 +242,8 @@ def process_data(symbol):
                     'timelag': combined_data['timelag'],
                     'impact_price_flag': False
                 }
-            redis_client.rpush(f'combined_data_{symbol}', json.dumps(combined_data_impact))
-            redis_client.ltrim(f'combined_data_{symbol}', -500, -1)
+            # redis_client.rpush(f'combined_data_{symbol}', json.dumps(combined_data_impact))
+            # redis_client.ltrim(f'combined_data_{symbol}', -500, -1)
             print(f'{time_diff:.2f}ms | {symbol} - {combined_data_impact}')
         else:
             logging.debug(f"Rate limited: Skipping processing for {symbol}")

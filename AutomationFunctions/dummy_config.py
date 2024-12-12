@@ -31,9 +31,9 @@ def send_telegram_message(message, bot_token2, chat_id2):
 IN_TRADE = [
     "CTC",
     "FTM",
-    "DOGE",
+    "SUI",
     "DOGS",
-    "XRP"
+    "AAVE"
 ]
 
 BYBIT_API_KEY = '7EIEVUIs0aoD50WgBA'

@@ -313,6 +313,7 @@ class DynamicWebsocketHedge:
                     # We take away the order amount from the unhedged amount
                     self.bybit_unhedge[perp2_symbol] -= amount if hedge_side == 'buy' else -amount
 
+                amount = abs(amount)
                 dec_amount = Decimal(amount)
                 hedge_amount = dec_amount.quantize(Decimal('0.00001'))
                 float_hedge_amount = float(hedge_amount)

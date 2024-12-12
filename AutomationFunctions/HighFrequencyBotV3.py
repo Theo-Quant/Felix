@@ -424,9 +424,9 @@ class TradingBot:
             entry_limit_price += self.adjustment_value
             exit_limit_price -= self.adjustment_value
         else:
-            if ma_entry_spread < self.entry_bound or latest_row['entry_spread'] < self.entry_bound or not latest_row['impact_price_reached']:
+            if ma_entry_spread < self.entry_bound or latest_row['entry_spread'] < self.entry_bound:
                 entry_limit_price += self.adjustment_value
-            if ma_exit_spread > self.exit_bound or latest_row['exit_spread'] > self.exit_bound or not latest_row['impact_price_reached']:
+            if ma_exit_spread > self.exit_bound or latest_row['exit_spread'] > self.exit_bound:
                 exit_limit_price -= self.adjustment_value
         return {
             "ma_entry_spread": ma_entry_spread,

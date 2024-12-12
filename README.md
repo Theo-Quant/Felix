@@ -24,7 +24,7 @@ This project, `byBitHyperLiquid.py`, establishes WebSocket connections to both t
 * Compiled by writing in terminal `python byBitHyperLiquid.py`.
 
 ## Documentation 
-* For Bybit documentation, refer to  https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  for the websocket API
+* For Bybit documentation, refer to  https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  for the websocket API. Furthermore to understand `from pybit.unified_trading import WebSocket`, refer to https://github.com/bybit-exchange/pybit/blob/master/pybit/unified_trading.py method `def orderbook_stream` 
 * For Hyperliquid Documentation, refer to  https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket for the websocket API.
 
 ## Variables

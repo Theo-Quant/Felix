@@ -32,37 +32,41 @@ orderbook_data = list()
 latest_data = {symbol: {
     'hyperliquid': {'bids': defaultdict(float), 'asks': defaultdict(float), 'time': 0},
     'bybit': {
-        stream_type: {'bids': [], 'asks': [], 'time': None}
+        stream_type: {'bids': {}, 'asks': {}, 'time': None}
         for stream_type in bybit_stream_types
     },
     'local_orderbook': {'bids': [], 'asks': [], 'time': None}
 } for symbol in symbols}
 last_process_time = {symbol: 0 for symbol in symbols}
-def process_bybit_message(message, symbol): # returns {"s': symbol , "ts": timestamp(ms), "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size], "u": updateID}
-    logging.debug(f"Received Binance message for {symbol}")
-    currentTime = 0
-    if 'ts' in message:
-        currentTime = message['ts']
+def process_bybit_message(message, symbol, stream_type): # returns {"s': symbol , "ts": timestamp(ms), "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size], "u": updateID}
+    # logging.debug(f"Received Binance message for {symbol} and {stream_type}")
+    event_time= message['ts']
     if 'data' in message:
-        data = message['data'] # returns {"s": symbol, "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size]}
-        print(data)
-        if 'b' in data and 'a' in data:
-            bid = data['b']
-            ask = data['a']
+             # returns {"s": symbol, "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size]}
+        # print(message['data'])
+        bid = message['data']['b']
+        ask = message['data']['a']
+        bid = {float(price) : float(size) for price, size in bid}
+        ask = {float(price) : float(size) for price, size in ask}
+        latest_data[symbol]['bybit'][stream_type]['bids'] = bid
+        latest_data[symbol]['bybit'][stream_type]['asks'] = ask
+        print(message['data'])
+
+
 
 
 #TODO4
-async def bybit_websocket_handler(symbol) : #returns dict('b':[bid price, bid size], 'a':[ask_price, ask_size])
+async def bybit_websocket_handler(symbol, depth) : #returns dict('b':[bid price, bid size], 'a':[ask_price, ask_size])
     while True:
         ws = WebSocket(
             testnet=False,
             channel_type="linear",
         )
         ws.orderbook_stream(
-            depth=50,
-            symbol=symbol,
-            callback=lambda message: process_bybit_message(message, symbol=symbol)) #already returns a dictionary type in process_bybit_message
-asyncio.run(bybit_websocket_handler(f'{symbols[0]}USDT'))
+            depth=depth,
+            symbol=f'{symbol}USDT',
+            callback=lambda message: process_bybit_message(message, symbol=symbol, stream_type = depth)) #already returns a dictionary type in process_bybit_message
+asyncio.run(bybit_websocket_handler(symbols[0], 50))
 
 
 

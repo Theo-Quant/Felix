@@ -266,105 +266,103 @@ class DynamicWebsocketHedge:
                 await self.hedge_order(symbol, side, coin_amount, cli_ord_id, price)
 
     async def hedge_order(self, symbol, side, amount, cli_ord_id, price):
-        # if cli_ord_id.startswith("PerpPerpArb") | cli_ord_id.startswith("t-PerpPerpArb"):
-        try:
-            base_symbol = symbol.replace("-USDT-SWAP", "").replace("USDT", "")
-            logger.info(f"Starting hedge_order with symbol: {symbol}, side: {side}, amount: {amount}, cli_ord_id: {cli_ord_id}")
+        if cli_ord_id.startswith("PerpPerpArb") | cli_ord_id.startswith("t-PerpPerpArb"):
+            try:
+                amount = round(amount, 10)
+                base_symbol = symbol.replace("-USDT-SWAP", "").replace("USDT", "")
+                logger.info(f"Starting hedge_order with symbol: {symbol}, side: {side}, amount: {amount}, cli_ord_id: {cli_ord_id}")
 
-            if self.perp2_exchange == 'OKX':
-                perp2_symbol = f"{base_symbol}/USDT:USDT" # Tested, trading Swap Perpetuals on OKX
-            elif self.perp2_exchange == 'BYBIT':
-                perp2_symbol = f"{base_symbol}/USDT:USDT" # Tested, trading Linear Perpetuals on Bybit
+                if self.perp2_exchange == 'OKX':
+                    perp2_symbol = f"{base_symbol}/USDT:USDT" # Tested, trading Swap Perpetuals on OKX
+                elif self.perp2_exchange == 'BYBIT':
+                    perp2_symbol = f"{base_symbol}/USDT:USDT" # Tested, trading Linear Perpetuals on Bybit
 
-            hedge_side = 'sell' if side.lower() == 'buy' else 'buy'
+                hedge_side = 'sell' if side.lower() == 'buy' else 'buy'
 
-            # Contract size handling and notional price
-            if self.perp2_exchange == 'OKX':
-                amount = amount / self.okx_contract_sz.get(f'{base_symbol}-USDT-SWAP')
-            elif self.perp2_exchange == 'BYBIT':
-                # Future work: after finishing the auto update contract size/precision
-                # save the contract size as a json file / redis and load it every [time interval]
+                # Contract size handling and notional price
+                if self.perp2_exchange == 'OKX':
+                    amount = amount / self.okx_contract_sz.get(f'{base_symbol}-USDT-SWAP')
+                elif self.perp2_exchange == 'BYBIT':
+                    # Future work: after finishing the auto update contract size/precision
+                    # save the contract size as a json file / redis and load it every [time interval]
 
-                # Add the amount to the unhedged amount, if we should buy then add, if we should sell then subtract
-                print(f'Perp2 Symbol in self.bybit_unhedge: {perp2_symbol in self.bybit_unhedge}')
-                print(f'Amount Unhedged: {self.bybit_unhedge.get(perp2_symbol, 0)}')
-                if perp2_symbol in self.bybit_unhedge:
-                    self.bybit_unhedge[perp2_symbol] += amount if hedge_side == 'buy' else -amount
-                else:
-                    self.bybit_unhedge[perp2_symbol] = amount if hedge_side == 'buy' else -amount
-                
-                print(f'Unhedged amount before hedging for {perp2_symbol}: {self.bybit_unhedge.get(perp2_symbol, 0)}')
+                    # Add the amount to the unhedged amount, if we should buy then add, if we should sell then subtract
+                    if perp2_symbol in self.bybit_unhedge:
+                        self.bybit_unhedge[perp2_symbol] += amount if hedge_side == 'buy' else -amount
+                    else:
+                        self.bybit_unhedge[perp2_symbol] = amount if hedge_side == 'buy' else -amount
+                    
+                    # If the unhedged amount is 0, no need to hedge
+                    if self.bybit_unhedge.get(perp2_symbol) == 0:
+                        logger.info(f'No need to hegde for {perp2_symbol}, there should be no unhedged position.')
+                        return
+                    
+                    # Round the amount to the nearest min_precision
+                    min_precision = self.bybit_min_precisions.get(perp2_symbol, 1.0)
+                    order_amount = round(self.bybit_unhedge.get(perp2_symbol) / min_precision) * min_precision
+                    amount = order_amount
 
-                # If the unhedged amount is 0, no need to hedge
-                if self.bybit_unhedge.get(perp2_symbol) == 0:
-                    logger.info(f'No need to hegde for {perp2_symbol}, there should be no unhedged position.')
-                    return
-                
-                # Round the amount to the nearest min_precision
-                min_precision = self.bybit_min_precisions.get(perp2_symbol, 1.0)
-                order_amount = round(self.bybit_unhedge.get(perp2_symbol) / min_precision) * min_precision
-                amount = order_amount
+                    # If the amount is 0, you can't hedge because it's too small
+                    if amount == 0:
+                        logger.info(f'The unhedged position for {perp2_symbol} is too small to hedge in Bybit for now.')
+                        logger.info(f'Current unhedged amount: {self.bybit_unhedge.get(perp2_symbol)}, min_precision: {min_precision}')
+                        return
+                    
+                    # If the amount is negative, it means we need to sell
+                    hedge_side = 'buy' if amount > 0 else 'sell'
 
-                # If the amount is 0, you can't hedge because it's too small
-                if amount == 0:
-                    logger.info(f'The unhedged position for {perp2_symbol} is too small to hedge in Bybit for now.')
-                    logger.info(f'Current unhedged amount: {self.bybit_unhedge.get(perp2_symbol)}, min_precision: {min_precision}')
-                    return
-                
-                # If the amount is negative, it means we need to sell
-                hedge_side = 'buy' if amount > 0 else 'sell'
+                    amount = abs(amount)
 
-                # We take away the order amount from the unhedged amount
-                self.bybit_unhedge[perp2_symbol] -= amount if hedge_side == 'buy' else -amount
-                print(f'Final unhedged amount for {perp2_symbol}: {self.bybit_unhedge.get(perp2_symbol, 0)}')
+                    # We take away the order amount from the unhedged amount
+                    self.bybit_unhedge[perp2_symbol] -= amount if hedge_side == 'buy' else -amount
+                    print(f'Final unhedged amount for {perp2_symbol}: {self.bybit_unhedge.get(perp2_symbol, 0)}')
 
-            amount = abs(amount)
-            dec_amount = Decimal(amount)
-            hedge_amount = dec_amount.quantize(Decimal('0.00001'))
-            float_hedge_amount = float(hedge_amount)
+                dec_amount = Decimal(amount)
+                hedge_amount = dec_amount.quantize(Decimal('0.00001'))
+                float_hedge_amount = float(hedge_amount)
 
-            if self.perp2_exchange == 'OKX':
-                rounded_hedge_amount = float_hedge_amount
-            elif self.perp2_exchange == 'BYBIT':
-                rounded_hedge_amount = float_hedge_amount # subject to change
+                if self.perp2_exchange == 'OKX':
+                    rounded_hedge_amount = float_hedge_amount
+                elif self.perp2_exchange == 'BYBIT':
+                    rounded_hedge_amount = float_hedge_amount # subject to change
 
-            print(f"{self.perp2_exchange} order placement started")
+                print(f"{self.perp2_exchange} order placement started")
 
-            if self.perp2_exchange == 'OKX':
-                order_params = {
-                    'symbol': perp2_symbol,
-                    'side': hedge_side,
-                    'amount': rounded_hedge_amount,
-                    'params': {'clOrdId': cli_ord_id}
-                }
-                print(f"Order parameters: {order_params}")
-            elif self.perp2_exchange == 'BYBIT':
-                # add four random digits to the cli_ord_id to avoid duplicate order ids
-                cli_ord_id = f"{cli_ord_id}_{str(datetime.now().timestamp()).replace('.', '')[-4:]}"
-                order_params = {
-                    'symbol': perp2_symbol,
-                    'side': hedge_side,
-                    'amount': rounded_hedge_amount,
-                    'params': {'order_link_id': cli_ord_id}
-                }
-                print(f"Order parameters: {order_params}")
-            order = await self.perp2_client.create_market_order(**order_params)
-            local_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            logger.info(f"{local_time}: {self.perp2_exchange} order placement completed")
-            logger.info(f"Order filled: {order}")
-        except InvalidOperation as e:
-            logger.error(f"Decimal conversion error: {e}")
-            logger.error(f"Problematic values - amount: {amount}")
-        except ccxt.NetworkError as e:
-            logger.error(f"Network error when placing {self.perp2_exchange} order: {e}")
-        except ccxt.ExchangeError as e:
-            logger.error(f"Exchange error when placing {self.perp2_exchange} order: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error in hedge_order: {e}")
-            logger.exception("Full traceback:")
+                if self.perp2_exchange == 'OKX':
+                    order_params = {
+                        'symbol': perp2_symbol,
+                        'side': hedge_side,
+                        'amount': rounded_hedge_amount,
+                        'params': {'clOrdId': cli_ord_id}
+                    }
+                    print(f"Order parameters: {order_params}")
+                elif self.perp2_exchange == 'BYBIT':
+                    # add four random digits to the cli_ord_id to avoid duplicate order ids
+                    cli_ord_id = f"{cli_ord_id}_{str(datetime.now().timestamp()).replace('.', '')[-4:]}"
+                    order_params = {
+                        'symbol': perp2_symbol,
+                        'side': hedge_side,
+                        'amount': rounded_hedge_amount,
+                        'params': {'order_link_id': cli_ord_id}
+                    }
+                    print(f"Order parameters: {order_params}")
+                order = await self.perp2_client.create_market_order(**order_params)
+                local_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+                logger.info(f"{local_time}: {self.perp2_exchange} order placement completed")
+                logger.info(f"Order filled: {order}")
+            except InvalidOperation as e:
+                logger.error(f"Decimal conversion error: {e}")
+                logger.error(f"Problematic values - amount: {amount}")
+            except ccxt.NetworkError as e:
+                logger.error(f"Network error when placing {self.perp2_exchange} order: {e}")
+            except ccxt.ExchangeError as e:
+                logger.error(f"Exchange error when placing {self.perp2_exchange} order: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error in hedge_order: {e}")
+                logger.exception("Full traceback:")
         # Manual order / liquidation order
-        # elif cli_ord_id == '':
-        #     pass
+        elif cli_ord_id == '':
+            pass
     async def activation_ping(self, last_ping_time):
         now = time.time()
         if now - last_ping_time < 15:

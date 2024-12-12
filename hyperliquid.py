@@ -11,6 +11,7 @@ import config
 import hmac
 import base64
 from pybit.unified_trading import WebSocket
+from byBitHyperLiquid import update_local_orderbook, process_data
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s:%(message)s',
@@ -19,10 +20,24 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
-symbols = ["BTC", "SOL", "ETH"]
 hyperliquid_ws_url = "wss://api.hyperliquid.xyz/ws"
-hyperliquid_stream_types = ["l2Book"]
-
+hyperliquid_stream_types = ['l2Book']
+bybit_stream_types = [1, 50, 200, 500] # need to find the stream for this one the depth, use the websocket for this
+symbols = ['BTC', 'SOL', 'ETH'] # for hyperliquid
+# hyperliquid_message = {
+#     "method": "subscribe",
+#     "subscription":{ "type": "l2Book", "coin": "BTC" }
+# }
+orderbook_data = list()
+latest_data = {symbol: {
+    'hyperliquid': {'bids': defaultdict(float), 'asks': defaultdict(float), 'time': 0},
+    'bybit': {
+        stream_type: {'bids': [], 'asks': [], 'time': None}
+        for stream_type in bybit_stream_types
+    },
+    'local_orderbook': {'bids': [], 'asks': [], 'time': None}
+} for symbol in symbols}
+last_process_time = {symbol: 0 for symbol in symbols}
 async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  [level1, level2] such that levels = [px(price), sz(size), n(number of trades)] , levels1 = bid, levels2 = as
     while True:
         try:
@@ -68,6 +83,10 @@ def process_hyperliquid_message(symbol, stream_type, message):
                 'asks': asks
             }
             print(new_data)
+            latest_data[symbol]['hyperliquid'][stream_type] = new_data
+            update_local_orderbook(symbol, stream_type, new_data)
+            process_data(symbol)
+
     else:
         logging.warning(f"Unexpected message structure for {symbol} ({stream_type}): {data}")
 

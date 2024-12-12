@@ -34,3 +34,4 @@ BTCUSDT, ETHUSDT, DOGEUSDT which is given in Hyperliquid`symbols = ['ETH', 'BTC'
 ## Methods
 * Use  `json.dump()` method that can convert a Python object into a JSON string. Can be used for writing/dumping JSON to a file/socket.
 * Use `json.load()` method to parse the JSON object to the python dictionary object
+* For Bybit, use the `from pybit.unified_trading import WebSocket` to use the WebSocket package which WebSocket returns dict type. Don't have to parse JSON object.

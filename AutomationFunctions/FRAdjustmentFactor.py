@@ -1,3 +1,4 @@
+import os
 import ccxt
 import pandas as pd
 from datetime import datetime, timedelta
@@ -9,6 +10,7 @@ import json
 import dummy_config as config   # Use dummy_config.py for local testing
 from sqlalchemy import create_engine
 from sqlalchemy.types import DateTime, Float, String
+from dotenv import load_dotenv
 
 # Shortened coin list for simplicity
 coins_list = config.IN_TRADE
@@ -16,12 +18,12 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
 
 # Azure SQL Database connection details
-driver = 'ODBC Driver 17 for SQL Server'
-server = 'theosql.database.windows.net'
-database = 'arbitrage_db_2024-03-22T23-30Z'
-username = 'THEOsql'
-password = 'THEOBullRun2024!'
-
+load_dotenv()
+driver = os.getenv('THEO_DB_DRIVER')
+server = os.getenv('THEO_DB_SERVER')
+database = os.getenv('THEO_DB_DATABASE')
+username = os.getenv('THEO_DB_UID')
+password = os.getenv('THEO_DB_PASSWORD')
 
 # Initialize exchanges
 okx = ccxt.okx({'enableRateLimit': True, 'options': {'defaultType': 'swap'}})

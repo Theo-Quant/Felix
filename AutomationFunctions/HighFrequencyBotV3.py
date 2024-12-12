@@ -207,7 +207,7 @@ class TradingBot:
     @staticmethod
     def generate_client_order_id():
         """Generate a simple alphanumeric client order ID."""
-        return 'SpreadArbTest9' + ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+        return 'PerpPerpArb' + ''.join(random.choices(string.ascii_letters + string.digits, k=10))
 
     @staticmethod
     def get_current_time_ms():

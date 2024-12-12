@@ -5,3 +5,4 @@ dev.py
 *.env
 websockets_data/
 *tradelogs/
+venv/

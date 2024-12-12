@@ -204,8 +204,55 @@ def process_data(symbol):
             impact_ask_hyperliquid = calculate_impact_price(hyperliquid_latest['asks'], 100)
             impact_bid_bybit = calculate_impact_price(combined_data['bybit']['bids'], 100) #confirmed
             impact_ask_bybit = calculate_impact_price(combined_data['bybit']['asks'], 100) #confirmed
-            if all(x is not None for x in [impact_bid_hyperliquid, impact_ask_hyperliquid, impact_bid_bybit, impact_ask_bybit]):
-                pass
+            if all(x is not None for x in [impact_bid_hyperliquid, impact_ask_hyperliquid, impact_bid_bybit, impact_ask_bybit]): #means all of the component in iterator should not be none
+                combined_data_impact = {
+                    'timestamp': get_current_utc_time_with_ms(),
+                    'entry_spread': round(100 * (impact_bid_hyperliquid - impact_ask_bybit) / impact_ask_bybit, 4),
+                    'exit_spread': round(100 * (impact_ask_hyperliquid - impact_bid_bybit) / impact_bid_bybit, 4),
+                    'best_bid_price_hyperliquid': hyperliquid_latest['bids'][0][0],
+                    'best_ask_price_hyperliquid': hyperliquid_latest['asks'][0][0],
+                    'best_bid_price_bybit': combined_data['bybit']['bids'][0][0],
+                    'best_ask_price_bybit': combined_data['bybit']['asks'][0][0],
+                    'impact_bid_price_hyperliquid': round(impact_bid_hyperliquid, 7),
+                    'impact_ask_price_hyperliquid': round(impact_ask_hyperliquid, 7),
+                    'impact_bid_price_bybit': round(impact_bid_bybit, 7),
+                    'impact_ask_price_bybit': round(impact_ask_bybit, 7),
+                    'hyperliquid_orderbook': hyperliquid_latest,
+                    'bybit_orderbook': combined_data['bybit'],
+                    'timelag': combined_data['timelag'],
+                    'impact_price_reached': True
+                }
+                if impact_bid_hyperliquid > impact_ask_hyperliquid:
+                    logging.info(
+                        f'Hyperliquid {symbol}"s impact bid {impact_bid_hyperliquid} is greater than its impact ask {impact_ask_hyperliquid} ')
+                if impact_bid_bybit > impact_ask_bybit:
+                    logging.info(
+                        f'Hyperliquid {symbol}"s impact bid {impact_bid_bybit} is greater than its impact ask {impact_ask_bybit} ')
+            else:
+                combined_data_impact = {
+                    'timestamp': get_current_utc_time_with_ms(),
+                    'entry_spread': None,
+                    'exit_spread': None,
+                    'best_bid_price_hyperliquid': hyperliquid_latest['bids'][0][0] if hyperliquid_latest['bids'] else None,
+                    'best_ask_price_hyperliquid': hyperliquid_latest['asks'][0][0] if hyperliquid_latest['asks'] else None,
+                    'best_bid_price_bybit': combined_data['bybit']['bids'][0][0] if combined_data['bybit']['bids'] else None,
+                    'best_ask_price_bybit': combined_data['bybit']['asks'][0][0] if combined_data['bybit']['asks'] else None,
+                    'impact_bid_price_hyperliquid': None,
+                    'impact_ask_price_hyperliquid': None,
+                    'impact_bid_price_hyperliquid': None,
+                    'impact_ask_price_hyperliquid': None,
+                    'hyperliquid_orderbook': hyperliquid_latest,
+                    'bybit_orderbook': combined_data['bybit'],
+                    'timelag': combined_data['timelag'],
+                    'impact_price_flag': False
+                }
+            redis_client.rpush(f'combined_data_{symbol}', json.dumps(combined_data_impact))
+            redis_client.ltrim(f'combined_data_{symbol}', -500, -1)
+            print(f'{time_diff:.2f}ms | {symbol} - {combined_data_impact}')
+        else:
+            logging.debug(f"Rate limited: Skipping processing for {symbol}")
+    else:
+        logging.debug(f"Not enough data to process for {symbol}")
 
 
 async def main():

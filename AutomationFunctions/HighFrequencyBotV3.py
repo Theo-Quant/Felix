@@ -246,16 +246,15 @@ class TradingBot:
             return None
 
         # Use Hong Kong timezone
-        hk_tz = pytz.timezone('Asia/Hong_Kong')
-        current_time = datetime.now(hk_tz)
+        current_time = datetime.now()
         one_second_ago = current_time - timedelta(seconds=1)
 
         # Filter data points from the last second
         recent_values = []
         for item in data:
             try:
-                # Parse the timestamp and localize it to Hong Kong time
-                item_time = datetime.fromisoformat(str(item['timestamp'])).astimezone(hk_tz)
+                # Parse the timestamp into datetime.datetime object
+                item_time = datetime.fromtimestamp(item['timestamp'] / 1000)
                 if item_time > one_second_ago and item[key] is not None:  # Check if the value is not None
                     recent_values.append(item[key])
             except ValueError:

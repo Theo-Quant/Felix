@@ -1,11 +1,11 @@
 from HighFrequencyBotV3 import TradingBot, asyncio
 
 bot_configs = [
-    # {'symbol': 'CTC', 'notional_per_trade': 50, 'bot_id': 'CTC', 'max_notional': 250},
-    # {'symbol': 'FTM', 'notional_per_trade': 50, 'bot_id': 'FTM', 'max_notional': 250},
-    # {'symbol': 'DOGE', 'notional_per_trade': 50, 'bot_id': 'DOGE', 'max_notional': 250}
-    {'symbol': 'DOGS', 'notional_per_trade': 50, 'bot_id': 'DOGS', 'max_notional': 250},
-    {'symbol': 'XRP', 'notional_per_trade': 50, 'bot_id': 'XRP', 'max_notional': 250},
+    # {'symbol': 'CTC', 'notional_per_trade': 100, 'bot_id': 'CTC', 'max_notional': 400},
+    # {'symbol': 'FTM', 'notional_per_trade': 100, 'bot_id': 'FTM', 'max_notional': 400},
+    # {'symbol': 'SUI', 'notional_per_trade': 100, 'bot_id': 'SUI', 'max_notional': 400}
+    {'symbol': 'DOGS', 'notional_per_trade': 100, 'bot_id': 'DOGS', 'max_notional': 400},
+    {'symbol': 'AAVE', 'notional_per_trade': 100, 'bot_id': 'AAVE', 'max_notional': 400},
 ]
 
 

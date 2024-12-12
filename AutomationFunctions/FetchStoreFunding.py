@@ -1,3 +1,4 @@
+import os
 import ccxt
 import logging
 # import config
@@ -7,6 +8,7 @@ import pandas as pd
 import pyodbc
 import schedule
 import time
+from dotenv import load_dotenv
 
 # Initialize exchange clients
 # binance = ccxt.binance({
@@ -47,12 +49,12 @@ bybit = ccxt.bybit({
 })
 
 # Azure SQL Database connection details
-driver = 'ODBC Driver 17 for SQL Server'
-server = 'theosql.database.windows.net'
-database = 'arbitrage_db_2024-03-22T23-30Z'
-username = 'THEOsql'
-password = 'THEOBullRun2024!'
-
+load_dotenv()
+driver = os.getenv('THEO_DB_DRIVER')
+server = os.getenv('THEO_DB_SERVER')
+database = os.getenv('THEO_DB_DATABASE')
+username = os.getenv('THEO_DB_UID')
+password = os.getenv('THEO_DB_PASSWORD')
 
 def connect_to_database():
     connection_string = (

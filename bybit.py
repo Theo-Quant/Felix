@@ -53,7 +53,7 @@ def process_bybit_message(message, symbol, stream_type): # returns {"s': symbol 
         latest_data[symbol]['bybit'][stream_type]['asks'] = ask
         latest_data[symbol]['bybit'][stream_type]['time'] = event_time
         print(latest_data[symbol]['bybit'][stream_type])
-        # process_data(symbol)
+        process_data(symbol)
 #TODO4
 async def bybit_websocket_handler(symbol, depth) : #returns dict('b':[bid price, bid size], 'a':[ask_price, ask_size])
     while True:

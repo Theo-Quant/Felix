@@ -40,7 +40,7 @@ latest_data = {symbol: {
 } for symbol in symbols}
 last_process_time = {symbol: 0 for symbol in symbols}
 def process_bybit_message(message, symbol, stream_type): # returns {"s': symbol , "ts": timestamp(ms), "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size], "u": updateID}
-    # logging.debug(f"Received Binance message for {symbol} and {stream_type}")
+    logging.debug(f"Received Binance message for {symbol} and {stream_type}")
     event_time= message['ts'] #
     if 'data' in message:
              # returns {"s": symbol, "b": list of bids in  a form of [bid price, bid size], "a": list of bids in  a form of [ask price, ask size]}
@@ -53,7 +53,7 @@ def process_bybit_message(message, symbol, stream_type): # returns {"s': symbol 
         latest_data[symbol]['bybit'][stream_type]['asks'] = ask
         latest_data[symbol]['bybit'][stream_type]['time'] = event_time
         print(latest_data[symbol]['bybit'][stream_type])
-        process_data(symbol)
+        process_data(symbol, bybit_stream= stream_type)
 #TODO4
 async def bybit_websocket_handler(symbol, depth) : #returns dict('b':[bid price, bid size], 'a':[ask_price, ask_size])
     while True:

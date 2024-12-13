@@ -44,10 +44,10 @@ latest_data = {symbol: {
 last_process_time = {symbol: 0 for symbol in symbols}
 #done
 def update_local_orderbook(symbol, stream_type, new_data): #confirmed
-    local_ob = latest_data[symbol]['local_orderbook']
-
+    global latest_data
+    # local_ob = latest_data[symbol]['local_orderbook']
     def update_side(side, new_levels):
-        current_levels = {price: size for price, size in local_ob[side]}
+        current_levels = {price: size for price, size in latest_data[symbol]['local_orderbook'][side]}
         for price, size in new_levels:
             if size == 0:
                 current_levels.pop(price, None)
@@ -59,20 +59,20 @@ def update_local_orderbook(symbol, stream_type, new_data): #confirmed
 
     if stream_type == 'l2Book':
         # Replace the entire local orderbook with books5 data
-        local_ob['bids'] = new_data['bids']
-        local_ob['asks'] = new_data['asks']
+        latest_data[symbol]['local_orderbook']['bids'] = new_data['bids']
+        latest_data[symbol]['local_orderbook']['asks'] = new_data['asks']
     else:
         # Update the local orderbook with new data
-        local_ob['bids'] = update_side('bids', new_data['bids'])
-        local_ob['asks'] = update_side('asks', new_data['asks'])
+        latest_data[symbol]['local_orderbook']['bids'] = update_side('bids', new_data['bids'])
+        latest_data[symbol]['local_orderbook']['asks'] = update_side('asks', new_data['asks'])
 
     # Ensure we always have 5 levels for both bids and asks
-    while len(local_ob['bids']) < 5:
-        local_ob['bids'].append((0, 0))
-    while len(local_ob['asks']) < 5:
-        local_ob['asks'].append((float('inf'), 0))
+    while len(latest_data[symbol]['local_orderbook']['bids']) < 5:
+        latest_data[symbol]['local_orderbook']['bids'].append((0, 0))
+    while len(latest_data[symbol]['local_orderbook']['asks']) < 5:
+        latest_data[symbol]['local_orderbook']['asks'].append((float('inf'), 0))
 
-    local_ob['time'] = new_data['time']
+    latest_data[symbol]['local_orderbook']['time'] = new_data['time']
 def get_timestamp(): #confirmed
     return int(time.time())
 def sign(message, secret_key): #confirmed
@@ -124,6 +124,7 @@ def calculate_impact_price(order_book, imn) ->float: #confirmed
     # orderbook_data.append(message["data"])
     #TODO1
 async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  [level1, level2] such that levels = [px(price), sz(size), n(number of trades)] , levels1 = bid, levels2 = ask
+    global latest_data
     while True:
         try:
             async with websockets.connect(ws_url) as websocket:
@@ -150,6 +151,7 @@ async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  
             await asyncio.sleep(5)
 #TODO2
 def process_hyperliquid_message(symbol, stream_type, message):
+    global latest_data
     logging.debug(f"Received hyperliquid message for {symbol} ({stream_type}): {message}")
     logging.info(f"received message is {message}")
     data = json.loads(message)  # parsing the data
@@ -171,7 +173,7 @@ def process_hyperliquid_message(symbol, stream_type, message):
             print(new_data)
             latest_data[symbol]['hyperliquid'][stream_type] = new_data
             update_local_orderbook(symbol, stream_type, new_data)
-            # process_data(symbol)
+            process_data(symbol)
 
     else:
         logging.warning(f"Unexpected message structure for {symbol} ({stream_type}): {data}")
@@ -202,8 +204,8 @@ def process_bybit_message(message, symbol, stream_type): # returns {"s': symbol 
         latest_data[symbol]['bybit'][stream_type]['bids'] = bid
         latest_data[symbol]['bybit'][stream_type]['asks'] = ask
         latest_data[symbol]['bybit'][stream_type]['time'] = event_time
-        print(latest_data[symbol]['bybit'][stream_type])
-        process_data(symbol)
+        # print(latest_data[symbol]['bybit'][stream_type])
+        process_data(symbol, bybit_stream=stream_type)
 #TODO4
 async def bybit_websocket_handler(symbol, depth) : #returns dict('b':[bid price, bid size], 'a':[ask_price, ask_size])
     while True:
@@ -219,13 +221,15 @@ async def bybit_websocket_handler(symbol, depth) : #returns dict('b':[bid price,
 # asyncio.run(hyperliquid_stream())
 # asyncio.run(bybit_stream())
 #TODO5
-def process_data(symbol):
+def process_data(symbol, bybit_stream = None):
     global last_process_time
+    global latest_data
     current_time = time.time() * 1000
     time_diff = current_time - last_process_time[symbol]
     last_process_time[symbol] = current_time
-    hyperliquid_data_available = latest_data[symbol]['local_orderbook']['time'] is not None
-    if hyperliquid_data_available and latest_data[symbol]['bybit']['time'] is not None :
+    hyperliquid_data_available = latest_data[symbol]['local_orderbook']['time']
+    bybit_time =  latest_data[symbol]['bybit'][bybit_stream]['time']
+    if hyperliquid_data_available and latest_data[symbol]['bybit'][bybit_stream]['time'] is not None :
         if rate_limiter.should_process(symbol):
             current_time = get_current_time_ms()
             #use the local orderbook for bybit data
@@ -233,12 +237,12 @@ def process_data(symbol):
             combined_data = {
                 'timestamp': get_current_utc_time_with_ms(),
                 'bybit': {
-                    'time': latest_data[symbol]['bybit']['time'],
-                    'bids': get_top_n(latest_data[symbol]['bybit']['bids'], 5, reverse=True),
-                    'asks': get_top_n(latest_data[symbol]['bybit']['asks'], 5)
+                    'time': latest_data[symbol]['bybit'][bybit_stream]['time'],
+                    'bids': get_top_n(latest_data[symbol]['bybit'][bybit_stream]['bids'], 5, reverse=True),
+                    'asks': get_top_n(latest_data[symbol]['bybit'][bybit_stream]['asks'], 5)
                 },
                 'hyperliquid': hyperliquid_latest,
-                'timelag': current_time - min(latest_data[symbol]['bybit']['time'], hyperliquid_latest['time'])
+                'timelag': current_time - min(latest_data[symbol]['bybit'][bybit_stream]['time'], hyperliquid_latest['time'])
             }
             impact_bid_hyperliquid = calculate_impact_price(hyperliquid_latest['bids'], 100)
             impact_ask_hyperliquid = calculate_impact_price(hyperliquid_latest['asks'], 100)

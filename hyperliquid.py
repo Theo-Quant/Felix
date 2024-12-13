@@ -11,7 +11,7 @@ import config
 import hmac
 import base64
 from pybit.unified_trading import WebSocket
-from byBitHyperLiquid import update_local_orderbook, process_data
+from byBitHyperLiquid import rate_limiter, get_current_time_ms, get_current_utc_time_with_ms, get_top_n, calculate_impact_price, process_data, update_local_orderbook, latest_data
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s:%(message)s',
@@ -29,16 +29,17 @@ symbols = ['BTC', 'SOL', 'ETH'] # for hyperliquid
 #     "subscription":{ "type": "l2Book", "coin": "BTC" }
 # }
 orderbook_data = list()
-latest_data = {symbol: {
-    'hyperliquid': {'bids': defaultdict(float), 'asks': defaultdict(float), 'time': 0},
-    'bybit': {
-        stream_type: {'bids': [], 'asks': [], 'time': None}
-        for stream_type in bybit_stream_types
-    },
-    'local_orderbook': {'bids': [], 'asks': [], 'time': None}
-} for symbol in symbols}
+# latest_data = {symbol: {
+#     'hyperliquid': {'bids': defaultdict(float), 'asks': defaultdict(float), 'time': 0},
+#     'bybit': {
+#         stream_type: {'bids': [], 'asks': [], 'time': None}
+#         for stream_type in bybit_stream_types
+#     },
+#     'local_orderbook': {'bids': [], 'asks': [], 'time': None}
+# } for symbol in symbols}
 last_process_time = {symbol: 0 for symbol in symbols}
 async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  [level1, level2] such that levels = [px(price), sz(size), n(number of trades)] , levels1 = bid, levels2 = as
+    global latest_data
     while True:
         try:
             async with websockets.connect(ws_url) as websocket:
@@ -48,8 +49,6 @@ async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  
                     "subscription": {"type": stream_type, "coin": symbol}
                 }
                 await websocket.send(json.dumps(subscribe_message))
-                # message = await websocket.recv()
-                # process_hyperliquid_message(symbol, stream_type, message)
                 async for message in websocket:
                     try:
                         process_hyperliquid_message(symbol, stream_type, message)
@@ -66,8 +65,9 @@ async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  
 
 #TODO2
 def process_hyperliquid_message(symbol, stream_type, message):
-    logging.debug(f"Received hyperliquid message for {symbol} ({stream_type}): {message}")
-    logging.info(f"received message is {message}")
+    global latest_data
+    # logging.debug(f"Received hyperliquid message for {symbol} ({stream_type}): {message}")
+    # logging.info(f"received message is {message}")
     data = json.loads(message) #parsing the data
     time  = 0
     if 'data' in data:
@@ -84,10 +84,9 @@ def process_hyperliquid_message(symbol, stream_type, message):
                 'bids': bids,
                 'asks': asks
             }
-            print(new_data)
             latest_data[symbol]['hyperliquid'][stream_type] = new_data
             update_local_orderbook(symbol, stream_type, new_data)
-
+            # print(latest_data)
             process_data(symbol)
 
     else:

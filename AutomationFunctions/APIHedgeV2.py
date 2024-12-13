@@ -152,6 +152,8 @@ class APIHedge:
                 if abs(okx_amount + bybit_amount) > 0.001:
                     logger.info(f"Mismatch detected for {coin}: OKX={okx_amount}, Bybit={bybit_amount}")
                     adjustment = - round((bybit_amount + okx_amount), 4)
+                    adjustment = adjustment / self.okx_contract_sz.get(f"{coin}-USDT-SWAP", 1)
+                    adjustment = round(adjustment, 5)
                     if abs(adjustment) > 0.0001:
                         await self.adjust_okx_position(okx_symbol, adjustment)
         else:

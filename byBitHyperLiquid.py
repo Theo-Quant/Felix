@@ -46,6 +46,7 @@ last_process_time = {symbol: 0 for symbol in symbols}
 def update_local_orderbook(symbol, stream_type, new_data): #confirmed
     global latest_data
     # local_ob = latest_data[symbol]['local_orderbook']
+    print("new_data:", new_data)
     def update_side(side, new_levels):
         current_levels = {price: size for price, size in latest_data[symbol]['local_orderbook'][side]}
         for price, size in new_levels:
@@ -128,6 +129,7 @@ async def hyperliquid_websocket_handler(ws_url, symbol, stream_type): # return  
     while True:
         try:
             async with websockets.connect(ws_url) as websocket:
+                print("connected to ")
                 logging.info(f'Connected to {ws_url}')
                 subscribe_message ={
                     "method": "subscribe",
@@ -155,6 +157,7 @@ def process_hyperliquid_message(symbol, stream_type, message):
     logging.debug(f"Received hyperliquid message for {symbol} ({stream_type}): {message}")
     logging.info(f"received message is {message}")
     data = json.loads(message)  # parsing the data
+    print(f"Process Hyperliquid message received message is {message}")
     time = 0
     if 'data' in data:
         if 'levels' in data["data"]:
@@ -170,8 +173,9 @@ def process_hyperliquid_message(symbol, stream_type, message):
                 'bids': bids,
                 'asks': asks
             }
-            print(new_data)
+            # print(new_data)
             latest_data[symbol]['hyperliquid'][stream_type] = new_data
+            print("new_data:" , new_data)
             update_local_orderbook(symbol, stream_type, new_data)
             process_data(symbol)
 
@@ -227,8 +231,10 @@ def process_data(symbol, bybit_stream = None):
     current_time = time.time() * 1000
     time_diff = current_time - last_process_time[symbol]
     last_process_time[symbol] = current_time
-    hyperliquid_data_available = latest_data[symbol]['local_orderbook']['time']
+    hyperliquid_data_available = latest_data[symbol]['local_orderbook']['time']  is not None
     bybit_time =  latest_data[symbol]['bybit'][bybit_stream]['time']
+    print("before processing")
+    print(f" latest data {latest_data}")
     if hyperliquid_data_available and latest_data[symbol]['bybit'][bybit_stream]['time'] is not None :
         if rate_limiter.should_process(symbol):
             current_time = get_current_time_ms()
@@ -301,7 +307,7 @@ async def main():
         for stream_type in hyperliquid_stream_types:
             tasks.append(hyperliquid_websocket_handler(hyperliquid_ws_url , symbol, stream_type))
         for stream_type in bybit_stream_types:
-            tasks.append(bybit_websocket_handler(symbol, stream_type))
+            tasks.append(bybit_websocket_handler(symbol,50))
     await asyncio.gather(*tasks)
 
 async def run():

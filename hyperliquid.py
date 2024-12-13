@@ -70,8 +70,10 @@ def process_hyperliquid_message(symbol, stream_type, message):
     # logging.info(f"received message is {message}")
     data = json.loads(message) #parsing the data
     time  = 0
+    print("data", data)
     if 'data' in data:
         if 'levels' in data["data"]:
+            # print(data["data"])
             levels = data["data"]["levels"]
             bids = levels[0] # [{'px': '97403', 'sz':'4.6913', 'n':'10'}]
             asks = levels[1] #[{'px': '97403', 'sz':'4.6913', 'n':'10'}]
@@ -87,7 +89,7 @@ def process_hyperliquid_message(symbol, stream_type, message):
             latest_data[symbol]['hyperliquid'][stream_type] = new_data
             update_local_orderbook(symbol, stream_type, new_data)
             # print(latest_data)
-            process_data(symbol)
+            # process_data(symbol)
 
     else:
         logging.warning(f"Unexpected message structure for {symbol} ({stream_type}): {data}")

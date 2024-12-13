@@ -159,6 +159,7 @@ def process_hyperliquid_message(symbol, stream_type, message):
     data = json.loads(message)  # parsing the data
     print(f"Process Hyperliquid message received message is {message}")
     time = 0
+    print(data["data"])
     if 'data' in data:
         if 'levels' in data["data"]:
             levels = data["data"]["levels"]
@@ -175,7 +176,7 @@ def process_hyperliquid_message(symbol, stream_type, message):
             }
             # print(new_data)
             latest_data[symbol]['hyperliquid'][stream_type] = new_data
-            print("new_data:" , new_data)
+            # print("new_data:" , new_data)
             update_local_orderbook(symbol, stream_type, new_data)
             process_data(symbol)
 

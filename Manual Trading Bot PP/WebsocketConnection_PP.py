@@ -104,6 +104,41 @@ class GateWebsocket(ExchangeWebsocket):
             logging.error(f"Error decoding Gate.io message: {e}")
         except Exception as e:
             logging.error(f"Error processing Gate.io message: {e}")
+class HyperLiquidWebsocket(ExchangeWebsocket):
+    async def subscribe(self, websocket): #confirmed
+        self.ob = {}
+        print(f"{self.exchange} - Subscribing to {self.symbol}")
+        for stream_type in self.stream_types:
+            self.ob[stream_type] = Orderbook(self.symbol, self.exchange)
+            subscribe_message = {
+            "method": "subscribe",
+                "subscription": {"type": stream_type, "coin": self.symbol}
+            }
+            await websocket.send(json.dumps(subscribe_message))
+    async def process_message(self, message):
+        data = json.loads(message)
+        if 'data' in data:
+            if 'levels' in data["data"]:
+                # print(data["data"]["levels"])
+                stream_type = 'l2Book'
+                levels = data["data"]["levels"]
+                bids = levels[0]  # [{'px': '97403', 'sz':'4.6913', 'n':'10'}]
+                asks = levels[1]  # [{'px': '97403', 'sz':'4.6913', 'n':'10'}]
+                bids = [[float(bid['px']), float(bid['sz'])] for bid in bids[:5]]
+                asks = [[float(ask['px']), float(ask['sz'])] for ask in asks[:5]]
+                self.ob[stream_type].update(data)
+                self.last_update_time = data['data']['time']
+                processed_data = {
+                    'exchange': 'HYPERLIQUID',
+                    'symbol': self.symbol,
+                    'market_type': self.market_type,
+                    'timestamp': data['data']['time'],
+                    'bids': bids,
+                    'asks': asks
+                }
+                print(f"Processed_data for {self.exchange}: {processed_data}")
+                self.spread_calculator.update_orderbook(self.exchange, processed_data)
+
 
 class OKXWebsocket(ExchangeWebsocket):
     async def subscribe(self, websocket):
@@ -248,6 +283,8 @@ class WebsocketFactory:
         exchange = exchange.upper()
         if exchange == "OKX":
             return OKXWebsocket(exchange, market_type, symbol)
+        elif exchange == "HYPERLIQUID":
+            return HyperLiquidWebsocket(exchange, market_type, symbol)
         elif exchange == "BINANCE":
             return BinanceWebsocket(exchange, market_type, symbol)
         elif exchange == "GATE":
@@ -375,10 +412,10 @@ class SpreadCalculator:
         }
 
     def push_to_redis(self, spread_data):
-        redis_key = f"{self.stream1.exchange}_PERP_{self.stream2.exchange}_PERP_{self.symbol}"
-        print(redis_key)
-        redis_client.rpush(redis_key, json.dumps(spread_data))
-        redis_client.ltrim(redis_key, -500, -1)
+        # redis_key = f"{self.stream1.exchange}_PERP_{self.stream2.exchange}_PERP_{self.symbol}"
+        # print(redis_key)
+        # redis_client.rpush(redis_key, json.dumps(spread_data))
+        # redis_client.ltrim(redis_key, -500, -1)
         print(f"Spread data for {self.symbol}: {spread_data}")
         self.csv_logger.log(spread_data)
 
@@ -471,6 +508,16 @@ class Orderbook:
                     self.asks[price] = amount
             self.bids = dict(sorted(self.bids.items(), key=lambda item: item[0], reverse=True))
             self.asks = dict(sorted(self.asks.items(), key=lambda item: item[0]))
+    def update_hyperliquid(self, data):
+        if int(data['data']['time']) <= self.ts:
+            return
+        data = data['data']
+        self.ts = int(data['time'])
+        self.bids = {float(bid['px']): float(bid['sz']) for bid in data['levels'][0]}
+        self.asks = {float(ask['px']): float(ask['sz']) for ask in data['levels'][1]}
+        self.bids = dict(sorted(self.bids.items(), key=lambda item: item[0], reverse=True))
+        self.asks = dict(sorted(self.asks.items(), key=lambda item: item[0]))
+
 
 async def main():
     print("Welcome to the Dynamic Websocket Connection Script")

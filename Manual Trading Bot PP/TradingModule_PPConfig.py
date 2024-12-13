@@ -26,7 +26,7 @@ BITGET_PASSPHRASE = ''
 BYBIT_API_KEY = '7EIEVUIs0aoD50WgBA'
 BYBIT_SECRET_KEY = '2RLhqq6bMulozcwBLRdqS4H3De4rq1TcW6vu'
 
-SUPPORT_EXCHANGES = ['BINANCE', 'OKX', 'GATE', 'BITGET', 'BYBIT']
+SUPPORT_EXCHANGES = ['BINANCE', 'OKX', 'GATE', 'BITGET', 'BYBIT', 'HYPERLIQUID']
 
 OKX_CONTRACT_SZ = {
     'NEIRO-USDT-SWAP': 1000,
@@ -235,7 +235,8 @@ EXCHANGE_WS_URLS = {
     "OKX_PERP": "wss://ws.okx.com:8443/ws/v5/public",
     "GATE_PERP": "wss://fx-ws.gateio.ws/v4/ws/usdt",
     "BITGET_PERP": "wss://ws.bitget.com/v2/ws/public",
-    "BYBIT_PERP": "wss://stream.bybit.com/v5/public/linear"
+    "BYBIT_PERP": "wss://stream.bybit.com/v5/public/linear",
+    "HYPERLIQUID_PERP":"wss://api.hyperliquid.xyz/ws"
 }
 
 STREAM_TYPES = {
@@ -247,5 +248,6 @@ STREAM_TYPES = {
                     ],
     "GATE_PERP": ["futures.order_book"],
     "BITGET_PERP": ["books5", "books15"],
-    "BYBIT_PERP": ["orderbook.50.", "orderbook.200.", "orderbook.500."]
+    "BYBIT_PERP": ["orderbook.50.", "orderbook.200.", "orderbook.500."],
+    "HYPERLIQUID_PERP": ["l2Book"]
 }

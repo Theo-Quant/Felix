@@ -84,7 +84,7 @@ class TrendsRedisUpload:
                     df.reset_index(inplace=True)
                 # print("df: before spreads created",df)
                 df['sell_spread'] = ((df['hyperliquid_bid1'] - df['bybit_ask1']) / df['bybit_ask1']).astype('float')
-                df['buy_spread'] = ((df['bybit_ask1'] - df['hyperliquid_bid1']) / df['hyperliquid_bid1']).astype('float')
+                df['buy_spread'] = ((df['hyperliquid_ask1'] - df['bybit_bid1']) / df['bybit_bid1']).astype('float')
                 averages = df.groupby('coin').apply(self.average_sum_first_ten).dropna()
                 latest = df.groupby('coin').apply(lambda x: x.index.max())
                 # print("types in dataframe:", df.dtypes)
@@ -151,8 +151,8 @@ class TrendsRedisUpload:
             return None
     @staticmethod
     def calculate_spread(df):
-        df['sell_spread'] = (df['hyperliquid_bid1'] - df['bybit_ask1']) / df['bybit_ask1'] * 100
-        df['buy_spread'] = (df['bybit_ask1'] - df['hyperliquid_bid1']) / df['hyperliquid_bid1'] * 100
+        df['sell_spread'] = ((df['hyperliquid_bid1'] - df['bybit_ask1']) / df['bybit_ask1']).astype('float')
+        df['buy_spread'] = ((df['hyperliquid_ask1'] - df['bybit_bid1']) / df['bybit_bid1']).astype('float')
         return df
 
     @staticmethod
@@ -310,28 +310,30 @@ def main():
         # logger.error(traceback.format_exc())
         pass
 
-    schedule.every(1).minutes.do(update_trends)
 
+    schedule.every(1).minutes.do(update_trends)
     while True:
         try:
             run_schedule()
         except KeyboardInterrupt:
-            logger.info("TrendsRedisUpload shutting down...")
+            # logger.info("TrendsRedisUpload shutting down...")
             break
         except Exception as e:
-            logger.error(f"Unexpected error in main loop: {e}")
-            logger.error(traceback.format_exc())
-            logger.info("Restarting main loop...")
+            # logger.error(f"Unexpected error in main loop: {e}")
+            # logger.error(traceback.format_exc())
+            # logger.info("Restarting main loop...")
             time.sleep(5)
 
-    logger.info("TrendsRedisUpload has ended. This message should not appear unless intentionally stopped.")
+    # logger.info("TrendsRedisUpload has ended. This message should not appear unless intentionally stopped.")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logger.critical(f"Fatal error in main: {e}")
-        logger.critical(traceback.format_exc())
+        # logger.critical(f"Fatal error in main: {e}")
+        # logger.critical(traceback.format_exc())
+        print(f"exception as {e}")
     finally:
-        logger.info("Script has exited. This message should not appear unless intentionally stopped.")
+        # logger.info("Script has exited. This message should not appear unless intentionally stopped.")
+        print("Finally")

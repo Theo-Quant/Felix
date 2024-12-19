@@ -12,6 +12,7 @@ from config import *
 import pandas as pd
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import schedule
 
 load_dotenv()
 API_TOKEN= os.getenv('BOT_TOKEN', "")
@@ -117,10 +118,32 @@ def get_market_data():
             symbol = list(averages.index)
             symbol1 = [sym for sym in symbol]
             symbol2 = list(hyperliquid_funding_rate.keys())
-            return df
+            common_symbol = find_common_elements(symbol1, symbol2)
+            # print("symbol1:", symbol1)
+            # print("symbol2:", symbol2)
+            # print("common_symbol:", common_symbol)
+            # you only need this for a score
+            scores = list()
+            max_fund = max([hyperliquid_funding_rate[symbol] for symbol in common_symbol])
+            max_open_interest = max([hyperliquid_open_interest[symbol] for symbol in common_symbol])
+            max_day_volume = max([hyperliquid_day_volume[symbol] for symbol in common_symbol])
+            max_spread = max([averages[symbol] for symbol in common_symbol])
+            for symbol in common_symbol:
+                scores.append([symbol, calculate_score(averages[symbol], hyperliquid_open_interest[symbol],
+                                                            hyperliquid_day_volume[symbol], max_spread,
+                                                            max_open_interest,
+                                                            max_day_volume)])
+            scores = sorted(scores, key=lambda x: x[1], reverse=True)
+            top_five = [sym for sym, score in scores[:5]]
+            scores = {sym:score for sym, score in scores[:5]}
+            df = df[df['coin'].isin(top_five)]
+            return df, scores
     finally:
         conn.close()
     return None
+
+def calculate_score(spread, open_interest, day_volume, max_spread, max_open_interest, max_day_volume):
+    return 0.8 * spread / max_spread + open_interest / max_open_interest * 0.1 + day_volume / max_day_volume * 0.1
 def find_common_elements(list1, list2):
     # Convert lists to sets
         set1 = set(list1)
@@ -153,35 +176,36 @@ def post_method(url, headers, data):
     except requests.exceptions.RequestException as e:
         # Return error message for connection-related exceptions
         return f"Error during the request: {e}"
-def check_alerts(data):
+def check_alerts(data, top_five:dict):
     global hyperliquid_funding_rate
     global hyperliquid_open_interest
     global hyperliquid_day_volume
     global hyperliquid_mark_price
-    print("data:", data)
-    print(hyperliquid_funding_rate)
-    grouped = data.groupby('coin')
-    for coin, group in grouped:
-        spread = group.iloc[-1]['sell_spread'] # Adjust field names based on actual API response
+    # print("data:", data)
+    # print(hyperliquid_funding_rate)
+    symbol = [symb for symb, score in top_five.items()]
+    for coin in symbol:
         funding_rate = hyperliquid_funding_rate[coin]
-        if spread > SPREAD_THRESHOLD:
-            send_alert(f"Spread Alert for {coin}: {spread:.2%}")
-
-        if funding_rate > FUNDING_THRESHOLD:
-            send_alert(f"Funding Rate Alert for {coin}: {funding_rate:.2%}")
-
+        latest_data = data[data['coin'] == coin]
+        latest_data.sort_values(by = ['timestamp'], ascending = False, inplace = True)
+        latest_data.reset_index(inplace = True)
+        print('latest_data', latest_data)
+        spread = latest_data.iloc[0]['sell_spread']
+        send_alert(f"Spread Alert for {coin}: {spread:.5%} and Funding Rate Alert for {coin}: {funding_rate:.5%}")
 
 def send_alert(message):
     bot.send_message(chat_id=CHAT_ID, text=message)
-
+def job():
+    market_data, top_five_score= get_market_data()
+    print("feeding into market data")
+    check_alerts(market_data, top_five_score)
 
 def main():
+    schedule.every().hour.at(":00").do(job)
     while True:
-        market_data = get_market_data()
-        print("feeding into market data")
-        check_alerts(market_data)
-        time.sleep(60)  # Check every 60 seconds
-
+        schedule.run_pending()
+        # job()
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()

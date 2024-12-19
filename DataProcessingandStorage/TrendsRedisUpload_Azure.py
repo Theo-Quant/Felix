@@ -84,7 +84,7 @@ class TrendsRedisUpload:
                     df.reset_index(inplace=True)
                 # print("df: before spreads created",df)
                 df['sell_spread'] = ((df['hyperliquid_bid1'] - df['bybit_ask1']) / df['bybit_ask1']).astype('float')
-                df['buy_spread'] = ((df['bybit_ask1'] - df['hyperliquid_bid1']) / df['hyperliquid_bid1']).astype('float')
+                df['buy_spread'] = ((df['hyperliquid_ask1'] - df['bybit_bid1']) / df['bybit_bid1']).astype('float')
                 averages = df.groupby('coin').apply(self.average_sum_first_ten).dropna()
                 latest = df.groupby('coin').apply(lambda x: x.index.max())
                 # print("types in dataframe:", df.dtypes)
@@ -151,8 +151,8 @@ class TrendsRedisUpload:
             return None
     @staticmethod
     def calculate_spread(df):
-        df['sell_spread'] = (df['hyperliquid_bid1'] - df['bybit_ask1']) / df['bybit_ask1'] * 100
-        df['buy_spread'] = (df['bybit_ask1'] - df['hyperliquid_bid1']) / df['hyperliquid_bid1'] * 100
+        df['sell_spread'] = ((df['hyperliquid_bid1'] - df['bybit_ask1']) / df['bybit_ask1']).astype('float')
+        df['buy_spread'] = ((df['hyperliquid_ask1'] - df['bybit_bid1']) / df['bybit_bid1']).astype('float')
         return df
 
     @staticmethod

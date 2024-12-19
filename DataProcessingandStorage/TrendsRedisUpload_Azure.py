@@ -256,7 +256,7 @@ class TrendsRedisUpload:
         all_data = pd.concat([chunk async for chunk in self.read_data_batch() if not chunk.empty])
         if not all_data.empty:
             all_data = self.calculate_spread(all_data)
-            ma_range_df = await self.calculate_ma_range(all_data, window_m=144, window_l=15)
+            ma_range_df = await self.calculate_ma_range(all_data, window_m=77, window_l=8)
             print(ma_range_df)
             self.upload_to_redis(ma_range_df)
             print(f"Uploaded to Redis at {datetime.now()}")
